@@ -1,0 +1,313 @@
+// =====================================================================
+// FICHIER : prisma/schema.prisma
+// RÔLE : Schéma complet de la base de données RapCongolais242 (Neon/PostgreSQL).
+// Toute la structure des données du site passe par ce fichier — c'est la
+// source de vérité pour Prisma, qui génère ensuite le client TypeScript
+// utilisé dans tout le code (src/lib/prisma.ts et partout où on l'importe).
+//
+// Organisation du fichier (dans l'ordre) :
+// 1. Authentification (NextAuth)          → comptes de connexion (auditeurs + admins)
+// 2. Artistes & musique                   → gérés uniquement par l'admin
+// 3. Abonnement "Boost" des artistes      → mise en avant, géré par l'admin
+// 4. Abonnement Premium des auditeurs     → débloque exclusivités, hors-ligne, soumissions
+// 5. Fonctionnalités auditeur             → favoris, playlists, historique, notes, contact
+// =====================================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- 1. Authentification (NextAuth) ----------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String?
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+
+  accounts Account[]
+  sessions Session[]
+
+  favorites            Favorite[]
+  playlists            Playlist[]
+  manualPayments ManualPaymentRequest[]
+  history              ListeningHistory[]
+  ratings              Rating[]
+  recommendations      ArtistRecommendation[]
+  downloads            Download[]
+  messages             ContactMessage[]
+  premiumSubscription  PremiumSubscription?
+
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------- 2. Artistes & musique (gérés uniquement par l'admin) ----------
+
+model Artist {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  stageName String
+  bio       String?   @db.Text
+  country   String
+  genre     String?
+  photoUrl  String?
+
+  instagram     String?
+  youtube       String?
+  tiktok        String?
+  x             String?
+  contactEmail  String?
+  contactPhone  String?
+
+  isFeatured       Boolean   @default(false)
+  featuredAt       DateTime?
+  featuredPhotoUrl String?
+  featuredBlurb    String?   @db.Text
+  featuredTrackId  String?
+  featuredTrack    Track?    @relation("ArtisteDeLaSemaine", fields: [featuredTrackId], references: [id])
+
+  tracks       Track[]      @relation("TracksDeLArtiste")
+  subscription Subscription?
+  ratings      Rating[]
+
+  createdAt DateTime @default(now())
+}
+
+model Track {
+  id          String   @id @default(cuid())
+  artistId    String
+  title       String
+  audioUrl    String?
+  externalUrl String?
+  coverUrl    String?
+  durationSec Int?
+  playsCount  Int      @default(0)
+  isExclusive Boolean  @default(false)
+  publishedAt DateTime @default(now())
+
+  artist              Artist             @relation("TracksDeLArtiste", fields: [artistId], references: [id], onDelete: Cascade)
+  featuredByArtists    Artist[]           @relation("ArtisteDeLaSemaine")
+  favorites            Favorite[]
+  playlistEntries      PlaylistTrack[]
+  history              ListeningHistory[]
+  downloads            Download[]
+}
+
+// ---------- 3. Abonnement "Boost" des artistes (géré par l'admin) ----------
+
+model Subscription {
+  id        String             @id @default(cuid())
+  artistId  String             @unique
+  plan      SubscriptionPlan   @default(FREE)
+  status    SubscriptionStatus @default(ACTIVE)
+  startedAt DateTime           @default(now())
+  endsAt    DateTime?
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+}
+
+enum SubscriptionPlan {
+  FREE
+  BOOST
+  STUDIO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+}
+
+// ---------- 4. Abonnement Premium des auditeurs ----------
+// Débloque : écoute des sons exclusifs, téléchargement hors-ligne,
+// soumission de nouveaux artistes underground (voir ArtistRecommendation).
+// L'argent récolté est reversé aux artistes, finance des jeux-concours,
+// des festivals et des frais de studio — expliqué sur la page /abonnez-vous.
+
+model PremiumSubscription {
+  id        String             @id @default(cuid())
+  userId    String             @unique
+  plan      PremiumPlan        @default(MONTHLY)
+  status    SubscriptionStatus @default(ACTIVE)
+  startedAt DateTime           @default(now())
+  endsAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum PremiumPlan {
+  MONTHLY
+  SEMESTRIAL
+  YEARLY
+}
+
+// ---------- 5. Fonctionnalités auditeur ----------
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  trackId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, trackId])
+}
+
+model Playlist {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  createdAt DateTime @default(now())
+
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tracks PlaylistTrack[]
+}
+
+model PlaylistTrack {
+  id         String   @id @default(cuid())
+  playlistId String
+  trackId    String
+  addedAt    DateTime @default(now())
+
+  playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  track    Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, trackId])
+}
+
+model ListeningHistory {
+  id       String   @id @default(cuid())
+  userId   String
+  trackId  String
+  playedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+}
+
+model Download {
+  id           String   @id @default(cuid())
+  userId       String
+  trackId      String
+  downloadedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, trackId])
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  userId    String
+  artistId  String
+  score     Int
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, artistId])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  userId    String?
+  name      String
+  email     String
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model ArtistRecommendation {
+  id         String   @id @default(cuid())
+  userId     String?
+  artistName String
+  links      String?  @db.Text
+  message    String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model ManualPaymentRequest {
+  id            String    @id @default(cuid())
+  userId        String
+  provider      ManualPaymentProvider
+  plan          PremiumPlan
+  phoneUsed     String
+  reference     String
+  screenshotUrl String?
+  status        ManualPaymentStatus @default(PENDING)
+  rejectReason  String?
+  createdAt     DateTime  @default(now())
+  reviewedAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum ManualPaymentProvider {
+  MTN_CONGO
+  AIRTEL_CONGO
+  WAVE_SENEGAL
+}
+
+enum ManualPaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
