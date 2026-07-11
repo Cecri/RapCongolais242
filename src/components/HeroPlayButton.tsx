@@ -1,9 +1,7 @@
 /**
  * FICHIER : src/components/HeroPlayButton.tsx
- * RÔLE : Bouton de lecture pour le son mis en avant dans le hero de la
- * page d'accueil (artiste de la semaine). Même logique que SonCard.tsx :
- * lecture native si fichier audio disponible, fenêtre YouTube si lien
- * externe uniquement, verrouillage si exclusif + non-Premium.
+ * RÔLE : Bouton de lecture du hero. Taille réduite sur mobile (padding
+ * et texte plus petits), normale à partir de sm:.
  */
 "use client";
 
@@ -40,8 +38,8 @@ export default function HeroPlayButton({
 
   if (verrouille) {
     return (
-      <Link href="/abonnez-vous" className="rounded-lg bg-ember px-5 py-2.5 text-sm font-semibold">
-        🔒 Réservé aux abonnés Premium
+      <Link href="/abonnez-vous" className="rounded-lg bg-ember px-3.5 py-2 text-xs font-semibold sm:px-5 sm:py-2.5 sm:text-sm">
+        🔒 Premium
       </Link>
     );
   }
@@ -56,8 +54,8 @@ export default function HeroPlayButton({
 
   return (
     <>
-      <button onClick={handleClic} className="rounded-lg bg-ember px-5 py-2.5 text-sm font-semibold">
-        ▶ Écouter &quot;{title}&quot;
+      <button onClick={handleClic} className="rounded-lg bg-ember px-3.5 py-2 text-xs font-semibold sm:px-5 sm:py-2.5 sm:text-sm">
+        ▶ Écouter
       </button>
       {modaleOuverte && idYoutube && (
         <YoutubeModal videoId={idYoutube} onClose={() => setModaleOuverte(false)} />

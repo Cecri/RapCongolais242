@@ -23,7 +23,7 @@ export default async function AdminLayout({
               </Link><Link href="/admin/artiste-semaine" className="text-paper-dim hover:text-paper">Artiste de la semaine</Link>
               <Link href="/admin/sons/nouveau" className="text-paper-dim hover:text-paper">
                 + Ajouter un son
-              </Link><Link href="/admin/soumissions" className="text-paper-dim hover:text-paper">Soumissions</Link><Link href="/admin/paiements-manuels" className="text-paper-dim hover:text-paper">Paiements manuels</Link><Link href="/admin/messages" className="text-paper-dim hover:text-paper">Messages</Link>
+              </Link><Link href="/admin/soumissions" className="text-paper-dim hover:text-paper">Soumissions</Link><Link href="/admin/paiements-manuels" className="text-paper-dim hover:text-paper">Paiements manuels</Link><Link href="/admin/messages" className="text-paper-dim hover:text-paper">Messages</Link><Link href="/admin/news" className="text-paper-dim hover:text-paper">News</Link><Link href="/admin/collaborations" className="text-paper-dim hover:text-paper">Collaborations</Link>
             </nav>
             <div className="flex items-center gap-4">
               <span className="text-sm text-ash">

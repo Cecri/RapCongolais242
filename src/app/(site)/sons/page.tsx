@@ -1,8 +1,7 @@
 /**
  * FICHIER : src/app/(site)/sons/page.tsx
- * RÔLE : Page publique listant tous les sons. Transmet maintenant aussi
- * externalUrl à chaque carte, pour permettre la lecture YouTube intégrée
- * quand aucun fichier audio n'est hébergé chez nous.
+ * RÔLE : Page publique listant tous les sons. Trie maintenant par
+ * releaseDate (date de sortie réelle), pas publishedAt (date d'upload).
  */
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -16,7 +15,7 @@ export default async function SonsPage() {
   const estConnecte = !!session?.user;
 
   const sons = await prisma.track.findMany({
-    orderBy: { publishedAt: "desc" },
+    orderBy: { releaseDate: "desc" },
     include: { artist: { select: { stageName: true, slug: true } } },
   });
 
@@ -27,7 +26,7 @@ export default async function SonsPage() {
       title: son.title,
       coverUrl: son.coverUrl,
       isExclusive: son.isExclusive,
-      publishedAt: son.publishedAt.toISOString(),
+      publishedAt: son.releaseDate.toISOString(),
       artistName: son.artist.stageName,
       artistSlug: son.artist.slug,
       audioUrl: verrouille ? null : son.audioUrl,
@@ -39,15 +38,13 @@ export default async function SonsPage() {
   });
 
   return (
-    <main className="mx-auto max-w-6xl px-8">
+    <main className="mx-auto max-w-6xl px-4 sm:px-8">
       <header className="pt-14">
         <span className="block font-mono text-xs uppercase tracking-wider text-ash">Écouter</span>
         <h1 className="mt-2.5 font-display text-4xl font-bold">Tous les sons</h1>
         <p className="mt-2 text-paper-dim">Les morceaux de nos artistes, y compris nos exclusivités introuvables ailleurs.</p>
       </header>
-
       <SonsListe sons={sonsPourAffichage} />
-
       <SoumissionBanner />
     </main>
   );

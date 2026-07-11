@@ -1,16 +1,6 @@
 // =====================================================================
 // FICHIER : prisma/schema.prisma
-// RÔLE : Schéma complet de la base de données RapCongolais242 (Neon/PostgreSQL).
-// Toute la structure des données du site passe par ce fichier — c'est la
-// source de vérité pour Prisma, qui génère ensuite le client TypeScript
-// utilisé dans tout le code (src/lib/prisma.ts et partout où on l'importe).
-//
-// Organisation du fichier (dans l'ordre) :
-// 1. Authentification (NextAuth)          → comptes de connexion (auditeurs + admins)
-// 2. Artistes & musique                   → gérés uniquement par l'admin
-// 3. Abonnement "Boost" des artistes      → mise en avant, géré par l'admin
-// 4. Abonnement Premium des auditeurs     → débloque exclusivités, hors-ligne, soumissions
-// 5. Fonctionnalités auditeur             → favoris, playlists, historique, notes, contact
+// RÔLE : Schéma complet de la base de données RapCongolais242.
 // =====================================================================
 
 generator client {
@@ -36,15 +26,15 @@ model User {
   accounts Account[]
   sessions Session[]
 
-  favorites            Favorite[]
-  playlists            Playlist[]
-  manualPayments ManualPaymentRequest[]
-  history              ListeningHistory[]
-  ratings              Rating[]
-  recommendations      ArtistRecommendation[]
-  downloads            Download[]
-  messages             ContactMessage[]
-  premiumSubscription  PremiumSubscription?
+  favorites           Favorite[]
+  playlists           Playlist[]
+  manualPayments      ManualPaymentRequest[]
+  history             ListeningHistory[]
+  ratings             Rating[]
+  recommendations     ArtistRecommendation[]
+  downloads           Download[]
+  messages            ContactMessage[]
+  premiumSubscription PremiumSubscription?
 
   createdAt DateTime @default(now())
 }
@@ -90,7 +80,7 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ---------- 2. Artistes & musique (gérés uniquement par l'admin) ----------
+// ---------- 2. Artistes & musique ----------
 
 model Artist {
   id        String    @id @default(cuid())
@@ -101,12 +91,12 @@ model Artist {
   genre     String?
   photoUrl  String?
 
-  instagram     String?
-  youtube       String?
-  tiktok        String?
-  x             String?
-  contactEmail  String?
-  contactPhone  String?
+  instagram    String?
+  youtube      String?
+  tiktok       String?
+  x            String?
+  contactEmail String?
+  contactPhone String?
 
   isFeatured       Boolean   @default(false)
   featuredAt       DateTime?
@@ -115,34 +105,61 @@ model Artist {
   featuredTrackId  String?
   featuredTrack    Track?    @relation("ArtisteDeLaSemaine", fields: [featuredTrackId], references: [id])
 
-  tracks       Track[]      @relation("TracksDeLArtiste")
-  subscription Subscription?
-  ratings      Rating[]
+  tracks          Track[] @relation("TracksDeLArtiste")
+  featuringTracks Track[] @relation("Featuring")
+  albums          Album[]
+  subscription    Subscription?
+  ratings         Rating[]
 
   createdAt DateTime @default(now())
 }
 
 model Track {
-  id          String   @id @default(cuid())
-  artistId    String
-  title       String
-  audioUrl    String?
-  externalUrl String?
-  coverUrl    String?
-  durationSec Int?
-  playsCount  Int      @default(0)
-  isExclusive Boolean  @default(false)
-  publishedAt DateTime @default(now())
+  id              String    @id @default(cuid())
+  artistId        String
+  albumId         String?
+  title           String
+  audioUrl        String?
+  externalUrl     String?
+  coverUrl        String?
+  durationSec     Int?
+  playsCount      Int       @default(0)
+  isExclusive     Boolean   @default(false)
+  isReleaseOfWeek Boolean   @default(false)
+  releaseDate     DateTime  @default(now())
+  publishedAt     DateTime  @default(now())
 
-  artist              Artist             @relation("TracksDeLArtiste", fields: [artistId], references: [id], onDelete: Cascade)
-  featuredByArtists    Artist[]           @relation("ArtisteDeLaSemaine")
-  favorites            Favorite[]
-  playlistEntries      PlaylistTrack[]
-  history              ListeningHistory[]
-  downloads            Download[]
+  artist            Artist             @relation("TracksDeLArtiste", fields: [artistId], references: [id], onDelete: Cascade)
+  album             Album?             @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  featuring         Artist[]           @relation("Featuring")
+  featuredByArtists Artist[]           @relation("ArtisteDeLaSemaine")
+  favorites         Favorite[]
+  playlistEntries   PlaylistTrack[]
+  history           ListeningHistory[]
+  downloads         Download[]
 }
 
-// ---------- 3. Abonnement "Boost" des artistes (géré par l'admin) ----------
+model Album {
+  id          String    @id @default(cuid())
+  artistId    String
+  title       String
+  type        AlbumType @default(SINGLE)
+  releaseDate DateTime  @default(now())
+  coverUrl    String?
+  createdAt   DateTime  @default(now())
+
+  artist Artist  @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  tracks Track[]
+}
+
+enum AlbumType {
+  ALBUM
+  EP
+  MIXTAPE
+  SINGLE
+}
+
+// ---------- 3. Abonnement "Boost" des artistes ----------
 
 model Subscription {
   id        String             @id @default(cuid())
@@ -168,10 +185,6 @@ enum SubscriptionStatus {
 }
 
 // ---------- 4. Abonnement Premium des auditeurs ----------
-// Débloque : écoute des sons exclusifs, téléchargement hors-ligne,
-// soumission de nouveaux artistes underground (voir ArtistRecommendation).
-// L'argent récolté est reversé aux artistes, finance des jeux-concours,
-// des festivals et des frais de studio — expliqué sur la page /abonnez-vous.
 
 model PremiumSubscription {
   id        String             @id @default(cuid())
@@ -190,7 +203,37 @@ enum PremiumPlan {
   YEARLY
 }
 
-// ---------- 5. Fonctionnalités auditeur ----------
+// ---------- 5. Paiement manuel (Mobile Money / Wave) ----------
+
+model ManualPaymentRequest {
+  id            String                @id @default(cuid())
+  userId        String
+  provider      ManualPaymentProvider
+  plan          PremiumPlan
+  phoneUsed     String
+  reference     String
+  screenshotUrl String?
+  status        ManualPaymentStatus   @default(PENDING)
+  rejectReason  String?
+  createdAt     DateTime              @default(now())
+  reviewedAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum ManualPaymentProvider {
+  MTN_CONGO
+  AIRTEL_CONGO
+  WAVE_SENEGAL
+}
+
+enum ManualPaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ---------- 6. Fonctionnalités auditeur ----------
 
 model Favorite {
   id        String   @id @default(cuid())
@@ -284,30 +327,31 @@ model ArtistRecommendation {
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
-model ManualPaymentRequest {
-  id            String    @id @default(cuid())
-  userId        String
-  provider      ManualPaymentProvider
-  plan          PremiumPlan
-  phoneUsed     String
-  reference     String
-  screenshotUrl String?
-  status        ManualPaymentStatus @default(PENDING)
-  rejectReason  String?
-  createdAt     DateTime  @default(now())
-  reviewedAt    DateTime?
+// ---------- 7. Actualités ----------
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model NewsPost {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  imageUrl    String?
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
-enum ManualPaymentProvider {
-  MTN_CONGO
-  AIRTEL_CONGO
-  WAVE_SENEGAL
+model CollaborationRequest {
+  id          String                      @id @default(cuid())
+  artistName  String
+  email       String
+  phone       String?
+  services    String                      @db.Text
+  message     String?                     @db.Text
+  status      CollaborationRequestStatus  @default(PENDING)
+  createdAt   DateTime                    @default(now())
 }
 
-enum ManualPaymentStatus {
+enum CollaborationRequestStatus {
   PENDING
-  APPROVED
-  REJECTED
+  CONTACTED
+  CLOSED
 }

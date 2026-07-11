@@ -1,11 +1,8 @@
 /**
  * FICHIER : src/context/PlayerContext.tsx
- * RÔLE : État global du lecteur. CORRECTIF de comportement : le bouton
- * "suivant" cliqué manuellement boucle TOUJOURS vers le premier son en
- * fin de playlist (peu importe le mode boucle) — comportement naturel
- * de navigation. Le mode "boucle" (🔁/🔂), lui, ne contrôle que ce qui
- * se passe quand un son se termine TOUT SEUL (fin naturelle) : off =
- * s'arrête au dernier son, file = reboucle automatiquement.
+ * RÔLE : État global du lecteur. Ajoute l'incrémentation du compteur
+ * d'écoutes (incrementerEcoute) à chaque nouveau son qui démarre —
+ * une seule fois par lecture, pas à chaque pause/reprise.
  */
 "use client";
 
@@ -18,6 +15,7 @@ import {
   useCallback,
 } from "react";
 import { recupererSonLocal } from "@/lib/offlineStorage";
+import { incrementerEcoute } from "@/lib/plays";
 
 export type PlayerTrack = {
   id: string;
@@ -104,17 +102,14 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     setIndexActuel(startIndex);
   }, [aleatoire, currentTrack]);
 
-  // Navigation MANUELLE (clic sur ⏭) : boucle toujours vers le début
   const suivant = useCallback(() => {
     setIndexActuel((i) => (i + 1 < queue.length ? i + 1 : 0));
   }, [queue.length]);
 
-  // Navigation MANUELLE (clic sur ⏮) : boucle toujours vers la fin
   const precedent = useCallback(() => {
     setIndexActuel((i) => (i > 0 ? i - 1 : queue.length - 1));
   }, [queue.length]);
 
-  // Avance AUTOMATIQUE (fin naturelle d'un son) : respecte le mode boucle
   const avancerAutomatiquement = useCallback(() => {
     setIndexActuel((i) => {
       if (i + 1 < queue.length) return i + 1;
@@ -177,6 +172,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       urlLocaleTemporaire = urlLocale;
       audio.volume = volume;
       audio.play().catch(() => {});
+      incrementerEcoute(currentTrack.id);
     });
 
     return () => {
@@ -201,27 +197,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   return (
     <PlayerContext.Provider
       value={{
-        currentTrack,
-        queue,
-        indexActuel,
-        isPlaying,
-        progress,
-        duration,
-        volume,
-        isMuted,
-        aleatoire,
-        boucle,
-        audioRef,
-        playTrack,
-        playQueue,
-        suivant,
-        precedent,
-        togglePlay,
-        seek,
-        setVolume,
-        toggleMute,
-        toggleAleatoire,
-        toggleBoucle,
+        currentTrack, queue, indexActuel, isPlaying, progress, duration, volume, isMuted, aleatoire, boucle,
+        audioRef, playTrack, playQueue, suivant, precedent, togglePlay, seek, setVolume, toggleMute, toggleAleatoire, toggleBoucle,
       }}
     >
       {children}
@@ -239,8 +216,6 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
 export function usePlayer() {
   const contexte = useContext(PlayerContext);
-  if (!contexte) {
-    throw new Error("usePlayer() doit être utilisé à l'intérieur de <PlayerProvider>");
-  }
+  if (!contexte) throw new Error("usePlayer() doit être utilisé à l'intérieur de <PlayerProvider>");
   return contexte;
 }

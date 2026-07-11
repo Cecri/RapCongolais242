@@ -1,10 +1,7 @@
 /**
  * FICHIER : src/app/(site)/mes-playlists/[id]/PlaylistTrackRow.tsx
- * RÔLE : Ligne d'un son dans une playlist, avec bouton lecture au
- * survol de la pochette. Clic = lance la LECTURE DE TOUTE LA PLAYLIST
- * en commençant à ce son précis (via playQueue avec le bon index) —
- * précédent/suivant fonctionnent donc ensuite normalement. Si ce son
- * est déjà en cours, le clic bascule pause/lecture au lieu de relancer.
+ * RÔLE : Ligne d'un son dans une playlist. Icône lecture toujours
+ * visible sur mobile, au survol seulement sur desktop.
  */
 "use client";
 
@@ -46,7 +43,7 @@ export default function PlaylistTrackRow({
         {track.coverUrl && <img src={track.coverUrl} alt="" className="h-full w-full scale-140 object-cover" />}
         <span
           className={`absolute inset-0 flex items-center justify-center bg-black/50 text-sm text-paper transition-opacity ${
-            estEnCours ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            estEnCours ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
           }`}
         >
           {estEnCours ? "⏸" : "▶"}

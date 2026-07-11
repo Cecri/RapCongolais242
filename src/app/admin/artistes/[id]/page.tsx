@@ -11,6 +11,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import BoutonSupprimerArtiste from "./BoutonSupprimerArtiste";
 import BoutonSupprimerSon from "./BoutonSupprimerSon";
+import BoutonSortieDeLaSemaine from "./BoutonSortieDeLaSemaine";
 
 export default async function GestionArtistePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -65,6 +66,7 @@ export default async function GestionArtistePage({ params }: { params: Promise<{
               <p className="text-xs text-ash">{track.audioUrl ? "Fichier hébergé" : "Lien externe uniquement"}</p>
             </div>
             <Link href={`/admin/sons/${track.id}/modifier`} className="rounded-lg border border-white/20 px-3 py-1.5 text-sm hover:bg-ink-softer">Modifier</Link>
+            <BoutonSortieDeLaSemaine trackId={track.id} artistId={id} estActif={track.isReleaseOfWeek} />
             <BoutonSupprimerSon trackId={track.id} />
           </div>
         ))}

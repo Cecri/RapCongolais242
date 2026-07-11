@@ -1,11 +1,15 @@
 /**
  * FICHIER : src/app/(site)/sons/SonsListe.tsx
- * RÔLE : Partie interactive de /sons — recherche, filtre, tri, "voir plus".
+ * RÔLE : Partie interactive de /sons. Construit maintenant la liste des
+ * sons LISIBLES (avec audioUrl) actuellement affichés, et la transmet
+ * comme queueContext à chaque SonCard — cliquer n'importe lequel active
+ * précédent/suivant/aléatoire sur toute la liste visible à l'écran.
  */
 "use client";
 
 import { useState } from "react";
 import SonCard from "@/components/SonCard";
+import type { PlayerTrack } from "@/context/PlayerContext";
 
 type Son = {
   id: string;
@@ -46,6 +50,18 @@ export default function SonsListe({ sons }: { sons: Son[] }) {
   const sonsAffiches = sonsFiltres.slice(0, nombreAffiche);
   const ilResteDesSons = sonsFiltres.length > nombreAffiche;
 
+  // File d'attente = uniquement les sons visibles à l'écran ET lisibles
+  // (vrai fichier audio, pas juste un lien externe/verrouillé)
+  const queueContext: PlayerTrack[] = sonsAffiches
+    .filter((son) => !!son.audioUrl)
+    .map((son) => ({
+      id: son.id,
+      title: son.title,
+      artistName: son.artistName,
+      audioUrl: son.audioUrl!,
+      coverUrl: son.coverUrl,
+    }));
+
   return (
     <>
       <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -63,7 +79,7 @@ export default function SonsListe({ sons }: { sons: Son[] }) {
         {sonsAffiches.length > 0 ? (
           <>
             <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
-              {sonsAffiches.map((son) => (<SonCard key={son.id} {...son} />))}
+              {sonsAffiches.map((son) => (<SonCard key={son.id} {...son} queueContext={queueContext} />))}
             </div>
             {ilResteDesSons && (
               <div className="mt-10 flex justify-center">

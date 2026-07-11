@@ -1,22 +1,29 @@
 /**
  * FICHIER : src/app/(site)/artistes/[slug]/page.tsx
- * RÔLE : Profil public d'un artiste. Discographie en liste verticale
- * (SonListItem), avec les mêmes fonctionnalités que partout ailleurs
- * sur le site (lecture réelle, favoris, playlist).
+ * RÔLE : Profil public d'un artiste. Ajoute une section "Collaborations"
+ * juste après la discographie — liste tous les artistes distincts avec
+ * qui l'artiste principal a un featuring, sous forme de petites cartes
+ * rondes cliquables (photo + nom), menant à leur propre profil.
  */
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { estUtilisateurPremium } from "@/lib/premium";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import RatingStars from "@/components/RatingStars";
 import SonListItem from "@/components/SonListItem";
+import type { PlayerTrack } from "@/context/PlayerContext";
 
 export default async function ArtisteProfil({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
   const artiste = await prisma.artist.findUnique({
     where: { slug },
-    include: { tracks: { orderBy: { publishedAt: "desc" } }, ratings: true },
+    include: {
+      tracks: { orderBy: { releaseDate: "desc" }, include: { artist: true, featuring: true } },
+      featuringTracks: { orderBy: { releaseDate: "desc" }, include: { artist: true, featuring: true } },
+      ratings: true,
+    },
   });
 
   if (!artiste) notFound();
@@ -40,20 +47,41 @@ export default async function ArtisteProfil({ params }: { params: Promise<{ slug
 
   const aDesInfosContact = artiste.contactEmail || artiste.contactPhone;
 
-  const sons = artiste.tracks.map((track) => {
+  const tousLesMorceaux = [...artiste.tracks, ...artiste.featuringTracks]
+    .filter((t, i, arr) => arr.findIndex((x) => x.id === t.id) === i)
+    .sort((a, b) => b.releaseDate.getTime() - a.releaseDate.getTime());
+
+  const sons = tousLesMorceaux.map((track) => {
     const verrouille = track.isExclusive && !estPremium;
+    const autresArtistes = [track.artist, ...track.featuring].filter((a) => a.id !== artiste.id);
+    const nomAffiche = autresArtistes.length > 0
+      ? `${track.artist.stageName} ft. ${[track.artist, ...track.featuring].filter((a) => a.id !== track.artistId).map((a) => a.stageName).join(", ")}`
+      : track.artist.stageName;
+
     return {
       id: track.id,
       title: track.title,
       coverUrl: track.coverUrl,
       isExclusive: track.isExclusive,
-      artistName: artiste.stageName,
+      artistName: nomAffiche,
       audioUrl: verrouille ? null : track.audioUrl,
       externalUrl: track.externalUrl,
       verrouille,
       estConnecte,
     };
   });
+
+  const queueContext: PlayerTrack[] = sons
+    .filter((son) => !!son.audioUrl)
+    .map((son) => ({ id: son.id, title: son.title, artistName: son.artistName, audioUrl: son.audioUrl!, coverUrl: son.coverUrl }));
+
+  // Liste des artistes distincts en collaboration (tous les featuring/
+  // titulaires liés à l'artiste courant sur chacun de ses morceaux,
+  // sans lui-même, sans doublon)
+  const collaborateurs = tousLesMorceaux
+    .flatMap((track) => [track.artist, ...track.featuring])
+    .filter((a) => a.id !== artiste.id)
+    .filter((a, i, arr) => arr.findIndex((x) => x.id === a.id) === i);
 
   return (
     <main className="mx-auto max-w-6xl px-8 pb-24">
@@ -68,7 +96,7 @@ export default async function ArtisteProfil({ params }: { params: Promise<{ slug
             <span className="inline-flex items-center gap-1.5 rounded-full bg-copper-dim px-3 py-1 font-mono text-xs font-semibold text-copper">★ {note.toFixed(1)} / 5 ({artiste.ratings.length} avis)</span>
           )}
           <h1 className="mt-3.5 font-display text-4xl font-bold">{artiste.stageName}</h1>
-          <p className="mt-1.5 text-paper-dim">{artiste.country} · {artiste.genre ?? "—"} · {artiste.tracks.length} titre{artiste.tracks.length !== 1 ? "s" : ""}</p>
+          <p className="mt-1.5 text-paper-dim">{artiste.country} · {artiste.genre ?? "—"} · {sons.length} titre{sons.length !== 1 ? "s" : ""}</p>
           <div className="mt-3">
             <RatingStars artistId={artiste.id} slug={artiste.slug} estConnecte={estConnecte} />
           </div>
@@ -80,8 +108,31 @@ export default async function ArtisteProfil({ params }: { params: Promise<{ slug
           <h2 className="font-display text-xl font-semibold">Discographie</h2>
           <div className="mt-5 flex flex-col gap-3">
             {sons.length === 0 && <p className="text-sm text-ash">Aucun titre pour l&apos;instant.</p>}
-            {sons.map((son, i) => (<SonListItem key={son.id} {...son} numero={i + 1} />))}
+            {sons.map((son, i) => (<SonListItem key={son.id} {...son} numero={i + 1} queueContext={queueContext} />))}
           </div>
+
+          {collaborateurs.length > 0 && (
+            <>
+              <h2 className="mt-14 font-display text-xl font-semibold">Collaborations</h2>
+              <div className="mt-5 flex flex-wrap gap-4">
+                {collaborateurs.map((collab) => {
+                  const initialesCollab = collab.stageName.split(" ").map((m) => m[0]).slice(0, 2).join("").toUpperCase();
+                  return (
+                    <Link key={collab.id} href={`/artistes/${collab.slug}`} className="flex w-20 flex-col items-center gap-2 text-center">
+                      <div className="h-16 w-16 overflow-hidden rounded-full border border-white/10 bg-ink-softer font-display text-sm text-white/20 transition-colors hover:border-copper">
+                        {collab.photoUrl ? (
+                          <img src={collab.photoUrl} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">{initialesCollab}</div>
+                        )}
+                      </div>
+                      <p className="w-full truncate text-xs font-semibold text-paper-dim">{collab.stageName}</p>
+                    </Link>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           {artiste.bio && (
             <>
@@ -101,11 +152,7 @@ export default async function ArtisteProfil({ params }: { params: Promise<{ slug
 
           {reseaux.length > 0 && (
             <div className="mt-5 flex flex-wrap gap-3 border-t border-white/10 pt-5">
-              {reseaux.map((r) => (
-                <a key={r.label} href={r.url!} target="_blank" rel="noopener noreferrer" className="text-sm text-copper hover:text-copper/80">
-                  {r.label}
-                </a>
-              ))}
+              {reseaux.map((r) => (<a key={r.label} href={r.url!} target="_blank" rel="noopener noreferrer" className="text-sm text-copper hover:text-copper/80">{r.label}</a>))}
             </div>
           )}
 

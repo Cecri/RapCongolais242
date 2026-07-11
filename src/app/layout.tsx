@@ -1,13 +1,10 @@
 /**
  * FICHIER : src/app/layout.tsx
- * RÔLE : Layout RACINE, appliqué à absolument toutes les pages du site
- * (public ET admin). Contient uniquement ce qui doit être strictement
- * partout : la structure HTML, les polices, et les Providers globaux
- * (session NextAuth + lecteur audio).
- *
- * Ne contient PLUS Navbar/Footer/PlayerBar (déplacés dans
- * src/app/(site)/layout.tsx) pour éviter qu'ils s'affichent aussi
- * sur les pages /admin, qui a son propre layout indépendant.
+ * RÔLE : Layout RACINE. overflow-x-hidden appliqué à la fois sur <html>
+ * ET <body> — un seul des deux suffit rarement à bloquer un débordement
+ * causé par un élément en position:fixed (comme le lecteur), qui se
+ * positionne par rapport au viewport et peut l'ignorer si seul le body
+ * est contraint.
  */
 import type { Metadata } from "next";
 import "./globals.css";
@@ -24,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
+    <html lang="fr" className="overflow-x-hidden">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -37,7 +34,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased pb-21">
+      <body className="w-full overflow-x-hidden font-body antialiased pb-21">
         <Providers>{children}</Providers>
       </body>
     </html>
