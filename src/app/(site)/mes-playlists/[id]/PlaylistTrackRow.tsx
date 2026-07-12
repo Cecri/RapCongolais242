@@ -40,7 +40,7 @@ export default function PlaylistTrackRow({
         aria-label={estEnCours ? `Mettre en pause ${track.title}` : `Écouter ${track.title}`}
         className="group relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-ink-softer"
       >
-        {track.coverUrl && <img src={track.coverUrl} alt="" className="h-full w-full scale-140 object-cover" />}
+        {track.coverUrl && <img src={track.coverUrl} alt="" className="h-full w-full scale-135 object-cover" />}
         <span
           className={`absolute inset-0 flex items-center justify-center bg-black/50 text-sm text-paper transition-opacity ${
             estEnCours ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"

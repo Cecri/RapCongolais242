@@ -1,43 +1,45 @@
 /**
  * FICHIER : src/app/(site)/artistes/ArtistesListe.tsx
- * RÔLE : Partie interactive de /artistes — recherche, filtre par genre,
- * tri (récent/nom/note/actifs), "voir plus". Reçoit les artistes déjà
- * calculés par page.tsx (Server Component).
+ * RÔLE : Partie interactive de /artistes. La recherche met à jour l'URL
+ * (?q=...) après une pause de frappe, déclenchant une requête serveur
+ * sur toute la base — comme sur /sons.
  */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import ArtistCard from "@/components/ArtistCard";
 import SoumissionBanner from "@/components/SoumissionBanner";
 
 type Artiste = {
-  slug: string;
-  name: string;
-  country: string;
-  genre: string | null;
-  photoUrl: string | null;
-  note: number | null;
-  nbSons: number;
-  derniereSortie: string;
+  slug: string; name: string; country: string; genre: string | null;
+  photoUrl: string | null; note: number | null; nbSons: number; derniereSortie: string;
 };
 
 const CRITERES_TRI = { recent: "Dernière sortie", nom: "Nom (A-Z)", note: "Mieux notés", actifs: "Plus actifs" };
 const TAILLE_PAGE = 8;
 
-export default function ArtistesListe({ artistes }: { artistes: Artiste[] }) {
-  const [recherche, setRecherche] = useState("");
+export default function ArtistesListe({ artistes, rechercheInitiale }: { artistes: Artiste[]; rechercheInitiale: string }) {
+  const router = useRouter();
+  const [recherche, setRecherche] = useState(rechercheInitiale);
   const [genreFiltre, setGenreFiltre] = useState("Tous les styles");
   const [tri, setTri] = useState<keyof typeof CRITERES_TRI>("recent");
   const [nombreAffiche, setNombreAffiche] = useState(TAILLE_PAGE);
 
+  useEffect(() => {
+    const delai = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (recherche.trim()) params.set("q", recherche.trim());
+      router.push(`/artistes${params.toString() ? `?${params}` : ""}`);
+    }, 500);
+    return () => clearTimeout(delai);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recherche]);
+
   const genresDisponibles = Array.from(new Set(artistes.map((a) => a.genre).filter(Boolean))) as string[];
 
   const artistesFiltres = artistes
-    .filter((a) => {
-      const correspondRecherche = a.name.toLowerCase().includes(recherche.toLowerCase());
-      const correspondGenre = genreFiltre === "Tous les styles" || a.genre === genreFiltre;
-      return correspondRecherche && correspondGenre;
-    })
+    .filter((a) => genreFiltre === "Tous les styles" || a.genre === genreFiltre)
     .sort((a, b) => {
       if (tri === "nom") return a.name.localeCompare(b.name);
       if (tri === "note") return (b.note ?? -1) - (a.note ?? -1);

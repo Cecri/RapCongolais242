@@ -76,7 +76,7 @@ function PodiumMarche({
       <Link href="/abonnez-vous" className={`flex flex-col items-center ${largeurs[rang]}`}>
         <span className="text-lg sm:text-2xl">{medailles[rang]}</span>
         <div className="relative mt-1 aspect-square w-full overflow-hidden rounded-xl bg-ink-softer">
-          {son.coverUrl && <img src={son.coverUrl} alt="" className="h-full w-full scale-140 object-cover" />}
+          {son.coverUrl && <img src={son.coverUrl} alt="" className="h-full w-full scale-135 object-cover" />}
           <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-sm">🔒</span>
         </div>
         <p className="mt-1.5 w-full truncate text-center text-[11px] font-semibold sm:text-xs">{son.title}</p>
@@ -93,7 +93,7 @@ function PodiumMarche({
       <span className="text-lg sm:text-2xl">{medailles[rang]}</span>
       <div className="group relative mt-1 aspect-square w-full overflow-hidden rounded-xl bg-ink-softer">
         {son.coverUrl ? (
-          <img src={son.coverUrl} alt="" className="h-full w-full scale-140 object-cover" />
+          <img src={son.coverUrl} alt="" className="h-full w-full scale-135 object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center font-display text-lg text-white/15">♪</div>
         )}
@@ -127,13 +127,13 @@ function PodiumResteItem({ son, queueContext }: { son: SonAffichage; queueContex
     <div className="rounded-2xl border border-white/10 bg-ink-soft transition-colors hover:border-white/20">
       {son.verrouille ? (
         <Link href="/abonnez-vous" className="relative block aspect-square overflow-hidden rounded-t-2xl bg-ink-softer">
-          {son.coverUrl && <img src={son.coverUrl} alt="" className="h-full w-full scale-140 object-cover" />}
+          {son.coverUrl && <img src={son.coverUrl} alt="" className="h-full w-full scale-135 object-cover" />}
           <span className="absolute inset-0 flex items-center justify-center bg-black/50">🔒</span>
         </Link>
       ) : (
         <button onClick={handleClic} className="group relative block aspect-square w-full overflow-hidden rounded-t-2xl bg-ink-softer">
           {son.coverUrl ? (
-            <img src={son.coverUrl} alt="" className="h-full w-full scale-140 object-cover" />
+            <img src={son.coverUrl} alt="" className="h-full w-full scale-135 object-cover" />
           ) : (
             <div className="flex h-full items-center justify-center font-display text-3xl text-white/15">♪</div>
           )}

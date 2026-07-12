@@ -124,7 +124,7 @@ function ContenuCover({
   return (
     <>
       {coverUrl ? (
-        <img src={coverUrl} alt="" className="h-full w-full scale-140 object-cover" />
+        <img src={coverUrl} alt="" className="h-full w-full scale-135 object-cover" />
       ) : (
         <div className="flex h-full items-center justify-center font-display text-3xl text-white/15">♪</div>
       )}

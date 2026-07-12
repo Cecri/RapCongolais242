@@ -59,7 +59,7 @@ export default async function GestionArtistePage({ params }: { params: Promise<{
         {artiste.tracks.map((track) => (
           <div key={track.id} className="flex items-center gap-4 rounded-xl border border-white/10 bg-ink-soft px-5 py-4">
             <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-ink-softer">
-              {track.coverUrl && <img src={track.coverUrl} alt="" className="h-full w-full scale-140 object-cover" />}
+              {track.coverUrl && <img src={track.coverUrl} alt="" className="h-full w-full scale-135 object-cover" />}
             </div>
             <div className="flex-1">
               <p className="font-semibold">{track.title}{track.isExclusive && <span className="ml-2 text-[10px] font-mono uppercase text-copper">Exclusif</span>}</p>

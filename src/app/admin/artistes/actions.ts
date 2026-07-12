@@ -1,9 +1,9 @@
 /**
  * FICHIER : src/app/admin/artistes/actions.ts
- * RÔLE : Server Actions artistes/sons/albums.
- * - creerSon peut créer un album à la volée (albumMode="new").
- * - creerAlbum reste disponible séparément (page /admin/artistes/[id]/albums/nouveau)
- *   pour créer un album vide à l'avance, si tu préfères cette méthode.
+ * RÔLE : Server Actions artistes/sons/albums. creerSon/modifierSon
+ * acceptent maintenant trackNumber (numéro de piste dans un album) —
+ * utilisé pour trier les morceaux dans le bon ordre sur le profil
+ * public, indépendamment de leur date de sortie ou d'upload.
  */
 "use server";
 
@@ -120,6 +120,7 @@ const SonSchema = z.object({
   albumId: z.string().optional(),
   newAlbumTitle: z.string().optional(),
   newAlbumType: z.enum(["ALBUM", "EP", "MIXTAPE", "SINGLE"]).optional(),
+  trackNumber: z.string().optional(),
   featuringNames: z.string().optional(),
 });
 
@@ -176,6 +177,7 @@ export async function creerSon(data: {
   artistId: string; title: string; audioUrl?: string; externalUrl?: string; coverUrl?: string;
   isExclusive?: boolean; releaseDate?: string;
   albumMode?: "none" | "new" | "existing"; albumId?: string; newAlbumTitle?: string; newAlbumType?: "ALBUM" | "EP" | "MIXTAPE" | "SINGLE";
+  trackNumber?: string;
   featuringNames?: string;
 }): Promise<EtatFormulaire> {
   const session = await auth();
@@ -215,6 +217,10 @@ export async function creerSon(data: {
 
   const featuringIds = await resoudreFeaturing(resultat.data.featuringNames, resultat.data.artistId);
 
+  const trackNumberFinal = resultat.data.trackNumber && resultat.data.trackNumber.trim() !== ""
+    ? parseInt(resultat.data.trackNumber, 10)
+    : null;
+
   await prisma.track.create({
     data: {
       artistId: resultat.data.artistId,
@@ -225,6 +231,7 @@ export async function creerSon(data: {
       isExclusive: resultat.data.isExclusive === true,
       releaseDate: resultat.data.releaseDate ? new Date(resultat.data.releaseDate) : new Date(),
       albumId: albumIdFinal,
+      trackNumber: albumIdFinal ? trackNumberFinal : null,
       featuring: featuringIds.length > 0 ? { connect: featuringIds.map((id) => ({ id })) } : undefined,
     },
   });
@@ -236,7 +243,7 @@ export async function creerSon(data: {
 
 export async function modifierSon(
   trackId: string,
-  data: { title: string; audioUrl?: string; externalUrl?: string; coverUrl?: string; isExclusive?: boolean; releaseDate?: string; albumId?: string; featuringNames?: string; }
+  data: { title: string; audioUrl?: string; externalUrl?: string; coverUrl?: string; isExclusive?: boolean; releaseDate?: string; albumId?: string; trackNumber?: string; featuringNames?: string; }
 ): Promise<EtatFormulaire> {
   const session = await auth();
   if (session?.user?.role !== "ADMIN") return { erreur: "Non autorisé." };
@@ -245,6 +252,10 @@ export async function modifierSon(
   if (!track) return { erreur: "Son introuvable." };
 
   const featuringIds = await resoudreFeaturing(data.featuringNames, track.artistId);
+
+  const trackNumberFinal = data.trackNumber && data.trackNumber.trim() !== ""
+    ? parseInt(data.trackNumber, 10)
+    : null;
 
   await prisma.track.update({
     where: { id: trackId },
@@ -256,6 +267,7 @@ export async function modifierSon(
       isExclusive: data.isExclusive === true,
       ...(data.releaseDate ? { releaseDate: new Date(data.releaseDate) } : {}),
       albumId: data.albumId || null,
+      trackNumber: data.albumId ? trackNumberFinal : null,
       featuring: { set: featuringIds.map((id) => ({ id })) },
     },
   });
@@ -309,20 +321,4 @@ export async function supprimerAlbum(albumId: string, artistId: string) {
   if (session?.user?.role !== "ADMIN") throw new Error("Non autorisé.");
   await prisma.album.delete({ where: { id: albumId } });
   revalidatePath(`/admin/artistes/${artistId}`);
-}
-
-export async function toggleSortieDeLaSemaine(trackId: string, artistId: string) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") throw new Error("Non autorisé.");
-
-  const track = await prisma.track.findUnique({ where: { id: trackId } });
-  if (!track) return;
-
-  await prisma.track.update({
-    where: { id: trackId },
-    data: { isReleaseOfWeek: !track.isReleaseOfWeek },
-  });
-
-  revalidatePath(`/admin/artistes/${artistId}`);
-  revalidatePath("/");
 }

@@ -123,6 +123,7 @@ model Track {
   externalUrl     String?
   coverUrl        String?
   durationSec     Int?
+  trackNumber Int?
   playsCount      Int       @default(0)
   isExclusive     Boolean   @default(false)
   isReleaseOfWeek Boolean   @default(false)

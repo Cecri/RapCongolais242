@@ -76,19 +76,19 @@ export default function SonListItem({
 
       {verrouille ? (
         <Link href="/abonnez-vous" aria-label="Réservé aux abonnés Premium" className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-ink-softer">
-          {coverUrl && <img src={coverUrl} alt="" className="h-full w-full scale-140 object-cover" />}
+          {coverUrl && <img src={coverUrl} alt="" className="h-full w-full scale-135 object-cover" />}
           <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-xs text-paper">🔒</span>
         </Link>
       ) : peutLire ? (
         <button onClick={handleClic} aria-label={estEnCours ? `Mettre en pause ${title}` : `Écouter ${title}`} className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-ink-softer">
-          {coverUrl && <img src={coverUrl} alt="" className="h-full w-full scale-140 object-cover" />}
+          {coverUrl && <img src={coverUrl} alt="" className="h-full w-full scale-135 object-cover" />}
           <span className={`absolute inset-0 flex items-center justify-center bg-black/50 text-sm text-paper transition-opacity ${estEnCours ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"}`}>
             {estEnCours ? "⏸" : "▶"}
           </span>
         </button>
       ) : (
         <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-ink-softer">
-          {coverUrl && <img src={coverUrl} alt="" className="h-full w-full scale-140 object-cover" />}
+          {coverUrl && <img src={coverUrl} alt="" className="h-full w-full scale-135 object-cover" />}
         </div>
       )}
 

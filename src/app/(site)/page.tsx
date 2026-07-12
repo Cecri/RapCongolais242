@@ -111,7 +111,7 @@ export default async function Home() {
   const meilleurDemarrageRaw = await prisma.track.findMany({
     where: { releaseDate: { gte: ilYA30Jours }, playsCount: { gt: 0 } },
     orderBy: { playsCount: "desc" },
-    take: 5,
+    take: 3,
     include: { artist: { select: { stageName: true, slug: true } } },
   });
   const meilleurDemarrage = meilleurDemarrageRaw.map(mapperSon);
@@ -119,7 +119,7 @@ export default async function Home() {
   const plusEcoutesRaw = await prisma.track.findMany({
     where: { playsCount: { gt: 0 } },
     orderBy: { playsCount: "desc" },
-    take: 5,
+    take: 3,
     include: { artist: { select: { stageName: true, slug: true } } },
   });
   const plusEcoutes = plusEcoutesRaw.map(mapperSon);

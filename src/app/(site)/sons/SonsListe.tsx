@@ -1,46 +1,48 @@
 /**
  * FICHIER : src/app/(site)/sons/SonsListe.tsx
- * RÔLE : Partie interactive de /sons. Construit maintenant la liste des
- * sons LISIBLES (avec audioUrl) actuellement affichés, et la transmet
- * comme queueContext à chaque SonCard — cliquer n'importe lequel active
- * précédent/suivant/aléatoire sur toute la liste visible à l'écran.
+ * RÔLE : Partie interactive de /sons. La recherche met maintenant à
+ * jour l'URL (?q=...) après une courte pause de frappe, ce qui déclenche
+ * une vraie requête serveur sur TOUT le catalogue (pas juste les sons
+ * déjà chargés) — reste fiable même avec un très grand nombre de sons.
+ * Le tri et le filtre "exclusifs" restent locaux (rapides, peu coûteux).
  */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import SonCard from "@/components/SonCard";
-import type { PlayerTrack } from "@/context/PlayerContext";
 
 type Son = {
-  id: string;
-  title: string;
-  coverUrl: string | null;
-  isExclusive: boolean;
-  publishedAt: string;
-  artistName: string;
-  artistSlug: string;
-  audioUrl: string | null;
-  externalUrl: string | null;
-  verrouille: boolean;
-  estPremium: boolean;
-  estConnecte: boolean;
+  id: string; title: string; coverUrl: string | null; isExclusive: boolean;
+  publishedAt: string; artistName: string; artistSlug: string;
+  audioUrl: string | null; externalUrl: string | null; verrouille: boolean;
+  estPremium: boolean; estConnecte: boolean;
 };
 
 const CRITERES_TRI = { recent: "Plus récent", ancien: "Plus ancien", nom: "Titre (A-Z)" };
 const TAILLE_PAGE = 12;
 
-export default function SonsListe({ sons }: { sons: Son[] }) {
-  const [recherche, setRecherche] = useState("");
+export default function SonsListe({ sons, rechercheInitiale }: { sons: Son[]; rechercheInitiale: string }) {
+  const router = useRouter();
+  const [recherche, setRecherche] = useState(rechercheInitiale);
   const [exclusifsUniquement, setExclusifsUniquement] = useState(false);
   const [tri, setTri] = useState<keyof typeof CRITERES_TRI>("recent");
   const [nombreAffiche, setNombreAffiche] = useState(TAILLE_PAGE);
 
+  // Met à jour l'URL après une pause de frappe (500ms), ce qui relance
+  // la requête serveur avec le nouveau terme de recherche.
+  useEffect(() => {
+    const delai = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (recherche.trim()) params.set("q", recherche.trim());
+      router.push(`/sons${params.toString() ? `?${params}` : ""}`);
+    }, 500);
+    return () => clearTimeout(delai);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recherche]);
+
   const sonsFiltres = sons
-    .filter((son) => {
-      const correspondRecherche = son.title.toLowerCase().includes(recherche.toLowerCase()) || son.artistName.toLowerCase().includes(recherche.toLowerCase());
-      const correspondExclusif = !exclusifsUniquement || son.isExclusive;
-      return correspondRecherche && correspondExclusif;
-    })
+    .filter((son) => !exclusifsUniquement || son.isExclusive)
     .sort((a, b) => {
       if (tri === "nom") return a.title.localeCompare(b.title);
       if (tri === "ancien") return new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime();
@@ -50,22 +52,16 @@ export default function SonsListe({ sons }: { sons: Son[] }) {
   const sonsAffiches = sonsFiltres.slice(0, nombreAffiche);
   const ilResteDesSons = sonsFiltres.length > nombreAffiche;
 
-  // File d'attente = uniquement les sons visibles à l'écran ET lisibles
-  // (vrai fichier audio, pas juste un lien externe/verrouillé)
-  const queueContext: PlayerTrack[] = sonsAffiches
-    .filter((son) => !!son.audioUrl)
-    .map((son) => ({
-      id: son.id,
-      title: son.title,
-      artistName: son.artistName,
-      audioUrl: son.audioUrl!,
-      coverUrl: son.coverUrl,
-    }));
-
   return (
     <>
       <div className="mt-8 flex flex-wrap items-center gap-3">
-        <input type="text" placeholder="Rechercher un son ou un artiste..." value={recherche} onChange={(e) => setRecherche(e.target.value)} className="min-w-60 flex-1 rounded-lg border border-white/20 bg-ink-soft px-4 py-3 text-sm placeholder:text-ash focus:border-copper focus:outline-none" />
+        <input
+          type="text"
+          placeholder="Rechercher un son ou un artiste..."
+          value={recherche}
+          onChange={(e) => setRecherche(e.target.value)}
+          className="min-w-60 flex-1 rounded-lg border border-white/20 bg-ink-soft px-4 py-3 text-sm placeholder:text-ash focus:border-copper focus:outline-none"
+        />
         <select value={tri} onChange={(e) => setTri(e.target.value as keyof typeof CRITERES_TRI)} className="rounded-lg border border-white/20 bg-ink-soft px-4 py-3 text-sm focus:border-copper focus:outline-none">
           {Object.entries(CRITERES_TRI).map(([valeur, label]) => (<option key={valeur} value={valeur}>Trier par : {label}</option>))}
         </select>
@@ -79,7 +75,7 @@ export default function SonsListe({ sons }: { sons: Son[] }) {
         {sonsAffiches.length > 0 ? (
           <>
             <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
-              {sonsAffiches.map((son) => (<SonCard key={son.id} {...son} queueContext={queueContext} />))}
+              {sonsAffiches.map((son) => (<SonCard key={son.id} {...son} />))}
             </div>
             {ilResteDesSons && (
               <div className="mt-10 flex justify-center">

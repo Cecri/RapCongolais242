@@ -1,8 +1,8 @@
 /**
  * FICHIER : src/app/admin/sons/nouveau/FormulaireSon.tsx
- * RÔLE : Formulaire d'ajout de son. Nouveau : choix explicite entre
- * Single, Nouvel album (nom + type saisis directement ici, créé dans
- * la même opération), ou Album existant (menu déroulant).
+ * RÔLE : Formulaire d'ajout de son. Le champ "Numéro de piste" apparaît
+ * uniquement si un album (nouveau ou existant) est sélectionné —
+ * inutile pour un single.
  */
 "use client";
 
@@ -62,6 +62,7 @@ export default function FormulaireSon({ artistes }: { artistes: Artiste[] }) {
         albumId: modeAlbum === "existing" ? (formData.get("albumId") as string) : undefined,
         newAlbumTitle: modeAlbum === "new" ? (formData.get("newAlbumTitle") as string) : undefined,
         newAlbumType: modeAlbum === "new" ? (formData.get("newAlbumType") as "ALBUM" | "EP" | "MIXTAPE" | "SINGLE") : undefined,
+        trackNumber: modeAlbum !== "none" ? (formData.get("trackNumber") as string) : undefined,
         featuringNames: formData.get("featuringNames") as string,
       });
 
@@ -133,7 +134,6 @@ export default function FormulaireSon({ artistes }: { artistes: Artiste[] }) {
                 <option value="MIXTAPE">Mixtape</option>
               </select>
             </div>
-            <p className="text-xs text-ash">Ce premier son deviendra automatiquement le 1er titre de ce nouveau projet — ajoute les suivants en choisissant "Album existant".</p>
           </div>
         )}
 
@@ -142,6 +142,14 @@ export default function FormulaireSon({ artistes }: { artistes: Artiste[] }) {
             <select name="albumId" required className="w-full rounded-lg border border-white/20 bg-ink-soft px-4 py-3 text-sm focus:border-copper focus:outline-none">
               {artisteSelectionne.albums.map((al) => (<option key={al.id} value={al.id}>{al.title} ({al.type})</option>))}
             </select>
+          </div>
+        )}
+
+        {modeAlbum !== "none" && (
+          <div className="mt-4">
+            <label className="mb-1.5 block text-xs font-semibold text-paper-dim">Numéro de piste</label>
+            <input type="number" name="trackNumber" min={1} placeholder="Ex: 3" className="w-32 rounded-lg border border-white/20 bg-ink-soft px-4 py-2.5 text-sm focus:border-copper focus:outline-none" />
+            <p className="mt-1.5 text-xs text-ash">Détermine l&apos;ordre d&apos;affichage dans le projet (piste 1, 2, 3...). Laisse vide si tu ne sais pas encore — tu pourras le préciser en modifiant le son plus tard.</p>
           </div>
         )}
       </div>
@@ -158,7 +166,7 @@ export default function FormulaireSon({ artistes }: { artistes: Artiste[] }) {
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-paper-dim">Lien externe (YouTube / SoundCloud / Spotify)</label>
         <input name="externalUrl" placeholder="https://..." className="w-full rounded-lg border border-white/20 bg-ink-soft px-4 py-3 text-sm focus:border-copper focus:outline-none" />
-        <p className="mt-1.5 text-xs text-ash">Récupère automatiquement la pochette officielle — fonctionne même avec un fichier audio déjà uploadé ci-dessus (le son reste lisible en interne, la pochette vient juste de ce lien).</p>
+        <p className="mt-1.5 text-xs text-ash">Récupère automatiquement la pochette officielle — fonctionne même avec un fichier audio déjà uploadé ci-dessus.</p>
       </div>
 
       <div>

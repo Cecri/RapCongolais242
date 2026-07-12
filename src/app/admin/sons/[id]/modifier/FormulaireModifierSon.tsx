@@ -1,6 +1,7 @@
 /**
  * FICHIER : src/app/admin/sons/[id]/modifier/FormulaireModifierSon.tsx
- * RÔLE : Formulaire pré-rempli pour modifier un son existant.
+ * RÔLE : Formulaire de modification complet — rattachement à un album
+ * existant et numéro de piste, en plus des champs déjà présents.
  */
 "use client";
 
@@ -15,10 +16,15 @@ type Track = {
   externalUrl: string | null;
   coverUrl: string | null;
   isExclusive: boolean;
+  albumId: string | null;
+  trackNumber: number | null;
 };
 
-export default function FormulaireModifierSon({ track }: { track: Track }) {
+type Album = { id: string; title: string; type: string };
+
+export default function FormulaireModifierSon({ track, albums }: { track: Track; albums: Album[] }) {
   const { uploaderVersR2 } = useUpload();
+  const [albumId, setAlbumId] = useState(track.albumId ?? "");
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState("");
 
@@ -48,6 +54,8 @@ export default function FormulaireModifierSon({ track }: { track: Track }) {
         externalUrl: formData.get("externalUrl") as string,
         coverUrl,
         isExclusive: formData.get("isExclusive") === "on",
+        albumId: albumId || undefined,
+        trackNumber: formData.get("trackNumber") as string,
       });
 
       if (resultat?.erreur) {
@@ -66,6 +74,28 @@ export default function FormulaireModifierSon({ track }: { track: Track }) {
         <label className="mb-1.5 block text-sm font-semibold text-paper-dim">Titre *</label>
         <input name="title" required defaultValue={track.title} className="w-full rounded-lg border border-white/20 bg-ink-soft px-4 py-3 text-sm focus:border-copper focus:outline-none" />
       </div>
+
+      <div className="border-t border-white/10 pt-4">
+        <label className="mb-1.5 block text-sm font-semibold text-paper-dim">Projet (album/EP/mixtape)</label>
+        <select
+          value={albumId}
+          onChange={(e) => setAlbumId(e.target.value)}
+          className="w-full rounded-lg border border-white/20 bg-ink-soft px-4 py-3 text-sm focus:border-copper focus:outline-none"
+        >
+          <option value="">Single / sans projet</option>
+          {albums.map((al) => (<option key={al.id} value={al.id}>{al.title} ({al.type})</option>))}
+        </select>
+        {albums.length === 0 && (
+          <p className="mt-1.5 text-xs text-ash">Cet artiste n&apos;a encore aucun album créé.</p>
+        )}
+      </div>
+
+      {albumId && (
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-paper-dim">Numéro de piste</label>
+          <input type="number" name="trackNumber" min={1} defaultValue={track.trackNumber ?? ""} placeholder="Ex: 3" className="w-32 rounded-lg border border-white/20 bg-ink-soft px-4 py-2.5 text-sm focus:border-copper focus:outline-none" />
+        </div>
+      )}
 
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-paper-dim">Remplacer le fichier audio</label>

@@ -79,7 +79,7 @@ function ContenuLecteur() {
         <div className="flex w-16 shrink-0 items-center gap-1.5 sm:w-60 sm:gap-3">
           <div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-ink-softer sm:h-13 sm:w-13">
             {currentTrack.coverUrl && (
-              <img src={currentTrack.coverUrl} alt="" className="h-full w-full scale-130 object-cover" />
+              <img src={currentTrack.coverUrl} alt="" className="h-full w-full scale-135 object-cover" />
             )}
           </div>
           <div className="hidden min-w-0 sm:block">
