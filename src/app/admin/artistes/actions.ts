@@ -1,9 +1,7 @@
 /**
  * FICHIER : src/app/admin/artistes/actions.ts
- * RÔLE : Server Actions artistes/sons/albums. creerSon/modifierSon
- * acceptent maintenant trackNumber (numéro de piste dans un album) —
- * utilisé pour trier les morceaux dans le bon ordre sur le profil
- * public, indépendamment de leur date de sortie ou d'upload.
+ * RÔLE : Server Actions complètes — artistes, sons (avec featuring,
+ * album, numéro de piste), albums, et bascule "Sortie de la semaine".
  */
 "use server";
 
@@ -321,4 +319,20 @@ export async function supprimerAlbum(albumId: string, artistId: string) {
   if (session?.user?.role !== "ADMIN") throw new Error("Non autorisé.");
   await prisma.album.delete({ where: { id: albumId } });
   revalidatePath(`/admin/artistes/${artistId}`);
+}
+
+export async function toggleSortieDeLaSemaine(trackId: string, artistId: string) {
+  const session = await auth();
+  if (session?.user?.role !== "ADMIN") throw new Error("Non autorisé.");
+
+  const track = await prisma.track.findUnique({ where: { id: trackId } });
+  if (!track) return;
+
+  await prisma.track.update({
+    where: { id: trackId },
+    data: { isReleaseOfWeek: !track.isReleaseOfWeek },
+  });
+
+  revalidatePath(`/admin/artistes/${artistId}`);
+  revalidatePath("/");
 }
