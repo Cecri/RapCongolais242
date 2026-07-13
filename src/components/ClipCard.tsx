@@ -1,9 +1,9 @@
 /**
  * FICHIER : src/components/ClipCard.tsx
- * RÔLE : Carte d'un clip. La carte entière est déjà cliquable (lien
- * <a> complet) — seul l'indicateur visuel ▶ change : toujours visible
- * sur mobile, au survol seulement sur desktop.
+ * RÔLE : Carte d'un clip. Icône SVG au lieu du caractère "▶".
  */
+import { IconPlaySmall } from "@/components/PlayPauseIcon";
+
 type ClipCardProps = {
   title: string;
   publishedAt: string;
@@ -21,8 +21,8 @@ export default function ClipCard({ title, publishedAt, thumbnailUrl, videoUrl }:
       <div className="relative aspect-video overflow-hidden rounded-xl bg-ink-softer">
         <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors sm:group-hover:bg-black/40">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-lg text-paper opacity-100 transition-opacity sm:h-11 sm:w-11 sm:bg-transparent sm:opacity-0 sm:group-hover:opacity-100">
-            ▶
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-paper opacity-100 transition-opacity sm:h-11 sm:w-11 sm:bg-transparent sm:opacity-0 sm:group-hover:opacity-100">
+            <IconPlaySmall className="sm:scale-125" />
           </span>
         </div>
       </div>

@@ -1,7 +1,6 @@
 /**
  * FICHIER : src/components/HeroPlayButton.tsx
- * RÔLE : Bouton de lecture du hero. Taille réduite sur mobile (padding
- * et texte plus petits), normale à partir de sm:.
+ * RÔLE : Bouton de lecture du hero. Icône SVG au lieu du caractère "▶".
  */
 "use client";
 
@@ -9,6 +8,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePlayer } from "@/context/PlayerContext";
 import YoutubeModal from "@/components/YoutubeModal";
+import { IconPlaySmall, IconLock } from "@/components/PlayPauseIcon";
 
 function extraireIdYoutube(url: string): string | null {
   const correspondance = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/);
@@ -38,8 +38,8 @@ export default function HeroPlayButton({
 
   if (verrouille) {
     return (
-      <Link href="/abonnez-vous" className="rounded-lg bg-ember px-3.5 py-2 text-xs font-semibold sm:px-5 sm:py-2.5 sm:text-sm">
-        🔒 Premium
+      <Link href="/abonnez-vous" className="flex items-center gap-2 rounded-lg bg-ember px-3.5 py-2 text-xs font-semibold sm:px-5 sm:py-2.5 sm:text-sm">
+        <IconLock /> Premium
       </Link>
     );
   }
@@ -54,8 +54,8 @@ export default function HeroPlayButton({
 
   return (
     <>
-      <button onClick={handleClic} className="rounded-lg bg-ember px-3.5 py-2 text-xs font-semibold sm:px-5 sm:py-2.5 sm:text-sm">
-        ▶ Écouter
+      <button onClick={handleClic} className="flex items-center gap-2 rounded-lg bg-ember px-3.5 py-2 text-xs font-semibold sm:px-5 sm:py-2.5 sm:text-sm">
+        <IconPlaySmall /> Écouter
       </button>
       {modaleOuverte && idYoutube && (
         <YoutubeModal videoId={idYoutube} onClose={() => setModaleOuverte(false)} />

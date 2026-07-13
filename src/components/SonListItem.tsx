@@ -1,7 +1,6 @@
 /**
  * FICHIER : src/components/SonListItem.tsx
- * RÔLE : Variante liste d'un son. Accepte maintenant queueContext,
- * même principe que SonCard — clic lance toute la file si fournie.
+ * RÔLE : Variante liste d'un son. Icônes SVG au lieu de caractères texte.
  */
 "use client";
 
@@ -11,6 +10,7 @@ import { usePlayer, type PlayerTrack } from "@/context/PlayerContext";
 import YoutubeModal from "@/components/YoutubeModal";
 import FavoriButton from "@/components/FavoriButton";
 import AjouterAPlaylistButton from "@/components/AjouterAPlaylistButton";
+import { IconPlaySmall, IconPauseSmall, IconLock } from "@/components/PlayPauseIcon";
 
 type SonListItemProps = {
   id: string;
@@ -76,19 +76,19 @@ export default function SonListItem({
 
       {verrouille ? (
         <Link href="/abonnez-vous" aria-label="Réservé aux abonnés Premium" className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-ink-softer">
-          {coverUrl && <img src={coverUrl} alt="" className="h-full w-full scale-135 object-cover" />}
-          <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-xs text-paper">🔒</span>
+          {coverUrl && <img src={coverUrl} alt="" className="h-full w-full scale-115 object-cover" />}
+          <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-paper"><IconLock /></span>
         </Link>
       ) : peutLire ? (
         <button onClick={handleClic} aria-label={estEnCours ? `Mettre en pause ${title}` : `Écouter ${title}`} className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-ink-softer">
-          {coverUrl && <img src={coverUrl} alt="" className="h-full w-full scale-135 object-cover" />}
-          <span className={`absolute inset-0 flex items-center justify-center bg-black/50 text-sm text-paper transition-opacity ${estEnCours ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"}`}>
-            {estEnCours ? "⏸" : "▶"}
+          {coverUrl && <img src={coverUrl} alt="" className="h-full w-full scale-115 object-cover" />}
+          <span className={`absolute inset-0 flex items-center justify-center bg-black/50 text-paper transition-opacity ${estEnCours ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"}`}>
+            {estEnCours ? <IconPauseSmall /> : <IconPlaySmall />}
           </span>
         </button>
       ) : (
         <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-ink-softer">
-          {coverUrl && <img src={coverUrl} alt="" className="h-full w-full scale-135 object-cover" />}
+          {coverUrl && <img src={coverUrl} alt="" className="h-full w-full scale-115 object-cover" />}
         </div>
       )}
 

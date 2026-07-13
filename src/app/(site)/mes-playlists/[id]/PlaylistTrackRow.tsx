@@ -1,11 +1,11 @@
 /**
  * FICHIER : src/app/(site)/mes-playlists/[id]/PlaylistTrackRow.tsx
- * RÔLE : Ligne d'un son dans une playlist. Icône lecture toujours
- * visible sur mobile, au survol seulement sur desktop.
+ * RÔLE : Ligne d'un son dans une playlist. Icônes SVG.
  */
 "use client";
 
 import { usePlayer, type PlayerTrack } from "@/context/PlayerContext";
+import { IconPlaySmall, IconPauseSmall } from "@/components/PlayPauseIcon";
 import BoutonRetirerSon from "./BoutonRetirerSon";
 
 export default function PlaylistTrackRow({
@@ -40,13 +40,13 @@ export default function PlaylistTrackRow({
         aria-label={estEnCours ? `Mettre en pause ${track.title}` : `Écouter ${track.title}`}
         className="group relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-ink-softer"
       >
-        {track.coverUrl && <img src={track.coverUrl} alt="" className="h-full w-full scale-135 object-cover" />}
+        {track.coverUrl && <img src={track.coverUrl} alt="" className="h-full w-full scale-115 object-cover" />}
         <span
-          className={`absolute inset-0 flex items-center justify-center bg-black/50 text-sm text-paper transition-opacity ${
+          className={`absolute inset-0 flex items-center justify-center bg-black/50 text-paper transition-opacity ${
             estEnCours ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
           }`}
         >
-          {estEnCours ? "⏸" : "▶"}
+          {estEnCours ? <IconPauseSmall /> : <IconPlaySmall />}
         </span>
       </button>
 

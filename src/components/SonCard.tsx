@@ -1,11 +1,8 @@
 /**
  * FICHIER : src/components/SonCard.tsx
- * RÔLE : Carte d'un son. Nouveau : accepte un prop optionnel
- * `queueContext` — la liste complète des sons "autour" de celui-ci
- * (ex: tous les sons de la page /sons, tous les sons récents de
- * l'accueil, toute la discographie d'un artiste). Si fourni, cliquer
- * lance une VRAIE file d'attente sur cette liste entière (précédent/
- * suivant/aléatoire/boucle deviennent utiles) au lieu d'un son isolé.
+ * RÔLE : Carte d'un son. Icônes play/pause/cadenas en SVG (plus de
+ * caractères "▶"/"⏸"/"🔒" qui s'affichaient en emoji coloré selon
+ * l'appareil/navigateur).
  */
 "use client";
 
@@ -14,6 +11,7 @@ import { usePlayer, type PlayerTrack } from "@/context/PlayerContext";
 import YoutubeModal from "@/components/YoutubeModal";
 import FavoriButton from "@/components/FavoriButton";
 import AjouterAPlaylistButton from "@/components/AjouterAPlaylistButton";
+import { IconPlaySmall, IconPauseSmall, IconLock } from "@/components/PlayPauseIcon";
 import { useState } from "react";
 
 type SonCardProps = {
@@ -58,9 +56,6 @@ export default function SonCard({
     if (verrouille) return;
 
     if (audioUrl) {
-      // Si un contexte de file existe et contient bien ce son, on
-      // lance toute la file (précédent/suivant/aléatoire deviennent
-      // utiles) — sinon on retombe sur la lecture d'un son isolé.
       if (queueContext && queueContext.length > 0) {
         const index = queueContext.findIndex((t) => t.id === id);
         if (index >= 0) {
@@ -78,11 +73,11 @@ export default function SonCard({
     <div className="group rounded-2xl border border-white/10 bg-ink-soft transition-colors hover:border-white/20">
       {verrouille ? (
         <Link href="/abonnez-vous" aria-label="Réservé aux abonnés Premium" className="relative block aspect-square overflow-hidden rounded-t-2xl bg-ink-softer">
-          <ContenuCover coverUrl={coverUrl} isExclusive={isExclusive} droitsAcquis={false} icone="🔒" toujoursVisible />
+          <ContenuCover coverUrl={coverUrl} isExclusive={isExclusive} droitsAcquis={false} icone={<IconLock className="text-paper" />} toujoursVisible />
         </Link>
       ) : peutLire ? (
         <button onClick={handleClic} aria-label={estEnCours ? `Mettre en pause ${title}` : `Écouter ${title}`} className="relative block aspect-square w-full overflow-hidden rounded-t-2xl bg-ink-softer">
-          <ContenuCover coverUrl={coverUrl} isExclusive={isExclusive} droitsAcquis={droitsAcquis} icone={estEnCours ? "⏸" : "▶"} />
+          <ContenuCover coverUrl={coverUrl} isExclusive={isExclusive} droitsAcquis={droitsAcquis} icone={estEnCours ? <IconPauseSmall className="text-paper" /> : <IconPlaySmall className="text-paper" />} />
         </button>
       ) : (
         <div className="relative aspect-square overflow-hidden rounded-t-2xl bg-ink-softer">
@@ -118,13 +113,13 @@ function ContenuCover({
   coverUrl: string | null;
   isExclusive: boolean;
   droitsAcquis: boolean;
-  icone?: string;
+  icone?: React.ReactNode;
   toujoursVisible?: boolean;
 }) {
   return (
     <>
       {coverUrl ? (
-        <img src={coverUrl} alt="" className="h-full w-full scale-135 object-cover" />
+        <img src={coverUrl} alt="" className="h-full w-full scale-115 object-cover" />
       ) : (
         <div className="flex h-full items-center justify-center font-display text-3xl text-white/15">♪</div>
       )}
@@ -136,7 +131,7 @@ function ContenuCover({
 
       {icone && (
         <span
-          className={`absolute bottom-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-ember text-sm text-paper transition-opacity ${
+          className={`absolute bottom-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-ember transition-opacity ${
             toujoursVisible ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
           }`}
         >
