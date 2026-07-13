@@ -1,9 +1,7 @@
 /**
  * FICHIER : src/components/NavbarUserMenu.tsx
- * RÔLE : Partie droite de la Navbar. Connexion/Inscription réduits sur
- * mobile. Étoile TOUJOURS visible (connecté) : couleur ash (discrète)
- * par défaut, or (--color-gold) une fois Premium — donne un repère
- * visuel cohérent sans dépendre de "Mon compte" en toutes lettres.
+ * RÔLE : Partie droite de la Navbar. Bascule mobile→bureau à md: (768px)
+ * au lieu de sm:, cohérent avec Navbar.tsx.
  */
 "use client";
 
@@ -35,16 +33,16 @@ export default function NavbarUserMenu({
 
   if (!estConnecte) {
     return (
-      <div className="flex gap-1.5 sm:gap-3">
+      <div className="flex shrink-0 gap-1.5 md:gap-3">
         <Link
           href="/connexion"
-          className="rounded-lg border border-white/20 px-2 py-1 text-[11px] font-semibold hover:bg-ink-soft sm:px-4 sm:py-2 sm:text-sm"
+          className="rounded-lg border border-white/20 px-2 py-1 text-[11px] font-semibold hover:bg-ink-soft md:px-4 md:py-2 md:text-sm"
         >
           Connexion
         </Link>
         <Link
           href="/inscription"
-          className="rounded-lg bg-ember px-2 py-1 text-[11px] font-semibold text-paper hover:bg-ember/90 sm:px-4 sm:py-2 sm:text-sm"
+          className="rounded-lg bg-ember px-2 py-1 text-[11px] font-semibold text-paper hover:bg-ember/90 md:px-4 md:py-2 md:text-sm"
         >
           Inscription
         </Link>
@@ -53,13 +51,13 @@ export default function NavbarUserMenu({
   }
 
   return (
-    <div className="relative" ref={conteneurRef}>
+    <div className="relative shrink-0" ref={conteneurRef}>
       <button
         onClick={() => setOuvert((o) => !o)}
-        className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-xs font-semibold hover:bg-ink-soft sm:h-auto sm:w-auto sm:gap-1.5 sm:rounded-lg sm:px-4 sm:py-2"
+        className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-xs font-semibold hover:bg-ink-soft md:h-auto md:w-auto md:gap-1.5 md:rounded-lg md:px-4 md:py-2"
       >
-        <span className={`sm:hidden ${estPremium ? "text-gold" : "text-ash"}`}>★</span>
-        <span className="hidden items-center gap-1.5 sm:flex">
+        <span className={`md:hidden ${estPremium ? "text-gold" : "text-ash"}`}>★</span>
+        <span className="hidden items-center gap-1.5 md:flex">
           <span className={estPremium ? "text-gold" : "text-ash"}>★</span>
           Mon compte
           <span className="text-xs text-ash">{ouvert ? "▲" : "▼"}</span>

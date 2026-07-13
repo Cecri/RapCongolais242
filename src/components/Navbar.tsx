@@ -1,8 +1,10 @@
 /**
  * FICHIER : src/components/Navbar.tsx
- * RÔLE : Barre de navigation. Logo et texte réduits davantage sur
- * mobile (moins encombrant). Transmet estPremium au menu burger pour
- * qu'il masque "Abonnez-vous" si déjà Premium.
+ * RÔLE : Barre de navigation. Les tailles (logo, texte, espacements)
+ * basculent maintenant à md: (768px) au lieu de sm: (640px) — aligné
+ * avec le seuil où le menu desktop complet apparaît, pour éviter tout
+ * chevauchement en mode paysage mobile (largeur ~650-750px, zone
+ * auparavant "coincée" entre les deux anciens seuils).
  */
 import Link from "next/link";
 import { auth } from "@/lib/auth";
@@ -21,12 +23,12 @@ export default async function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-white/10 bg-ink/95 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-3 sm:h-19 sm:px-8">
-        <div className="flex items-center gap-0.5 sm:gap-1">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-3 md:h-19 md:px-8">
+        <div className="flex min-w-0 items-center gap-0.5 md:gap-1">
           <NavbarMobileMenu estPremium={estPremium} />
-          <Link href="/" className="flex items-center gap-1.5 font-display text-sm font-bold sm:gap-3.5 sm:text-lg">
-            <img src="/logo.png" alt="" className="-ml-0.5 h-6 w-auto object-contain sm:-ml-3 sm:h-11" />
-            <span className="whitespace-nowrap">RapCongolais<span className="text-copper">242</span></span>
+          <Link href="/" className="flex min-w-0 items-center gap-1.5 font-display text-sm font-bold md:gap-3.5 md:text-lg">
+            <img src="/logo.png" alt="" className="-ml-0.5 h-6 w-auto shrink-0 object-contain md:-ml-3 md:h-11" />
+            <span className="truncate whitespace-nowrap">RapCongolais<span className="text-copper">242</span></span>
           </Link>
         </div>
 
@@ -35,7 +37,6 @@ export default async function Navbar() {
           <Link href="/artistes" className="hover:text-paper">Artistes</Link>
           <Link href="/sons" className="hover:text-paper">Sons</Link>
           <Link href="/clips" className="hover:text-paper">Clips</Link>
-          <Link href="/collaboration" className="hover:text-paper">Collaboration</Link>
         </div>
 
         <NavbarUserMenu estConnecte={!!session?.user} nom={session?.user?.name || session?.user?.email || ""} estPremium={estPremium} />

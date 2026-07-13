@@ -23,3 +23,17 @@ body {
   background-color: var(--color-ink);
   color: var(--color-paper);
 }
+
+/* Retire le surlignage bleu/gris que certains navigateurs mobiles
+   (Safari iOS, Chrome Android) ajoutent automatiquement au toucher
+   sur les éléments cliquables — cause du "bouton bleu opaque" observé
+   sur les boutons de lecture, différent selon le navigateur. */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
