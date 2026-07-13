@@ -24,32 +24,46 @@ body {
   color: var(--color-paper);
 }
 
-/* Retire le surlignage tactile bleu sur mobile (Chrome + Safari iOS).
-   Safari nécessite des réglages plus insistants que -webkit-tap-highlight-color
-   seul, notamment sur les <img> et <button> — d'où les règles supplémentaires
-   ci-dessous (appearance, outline, callout) spécifiquement pour ce navigateur. */
-* {
-  -webkit-tap-highlight-color: transparent;
+/* Neutralise le surlignage tactile (bleu/gris) que Safari iOS et Chrome
+   Android ajoutent par défaut sur les éléments cliquables. Safari ignore
+   parfois le mot-clé "transparent" seul — la forme rgba(0,0,0,0) est plus
+   fiable. Combiné à une désactivation explicite des états :active/:focus
+   qui peuvent ajouter un assombrissement natif par-dessus nos couleurs. */
+*,
+*::before,
+*::after {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
 button,
 a,
-img {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+img,
+[role="button"] {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   -webkit-touch-callout: none;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 button {
   -webkit-appearance: none;
   appearance: none;
-  outline: none;
+  background-clip: padding-box;
 }
 
 button:focus,
 button:active,
+button:focus-visible,
 a:focus,
 a:active {
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
+  outline: none !important;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+}
+
+/* Empêche tout assombrissement/éclaircissement natif ajouté par le
+   navigateur au clic, en forçant explicitement la même couleur de fond
+   qu'au repos sur les boutons pleins (comme le bouton play/pause). */
+button:active {
+  background-color: inherit;
 }
