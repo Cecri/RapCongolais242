@@ -1,10 +1,7 @@
 /**
  * FICHIER : src/components/Navbar.tsx
- * RÔLE : Barre de navigation. Les tailles (logo, texte, espacements)
- * basculent maintenant à md: (768px) au lieu de sm: (640px) — aligné
- * avec le seuil où le menu desktop complet apparaît, pour éviter tout
- * chevauchement en mode paysage mobile (largeur ~650-750px, zone
- * auparavant "coincée" entre les deux anciens seuils).
+ * RÔLE : Barre de navigation. Ajout du lien "Collaborons" (manquant en
+ * version bureau, présent uniquement dans le menu mobile jusqu'ici).
  */
 import Link from "next/link";
 import { auth } from "@/lib/auth";
@@ -32,11 +29,12 @@ export default async function Navbar() {
           </Link>
         </div>
 
-        <div className="hidden gap-9 text-sm text-paper-dim md:flex">
+        <div className="hidden gap-7 text-sm text-paper-dim md:flex">
           <Link href="/" className="hover:text-paper">Accueil</Link>
           <Link href="/artistes" className="hover:text-paper">Artistes</Link>
           <Link href="/sons" className="hover:text-paper">Sons</Link>
           <Link href="/clips" className="hover:text-paper">Clips</Link>
+          <Link href="/collaboration" className="hover:text-paper">Collaborons</Link>
         </div>
 
         <NavbarUserMenu estConnecte={!!session?.user} nom={session?.user?.name || session?.user?.email || ""} estPremium={estPremium} />

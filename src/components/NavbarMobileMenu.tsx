@@ -1,8 +1,7 @@
 /**
  * FICHIER : src/components/NavbarMobileMenu.tsx
- * RÔLE : Menu mobile. Fond solide (plus de transparence/flou), liste
- * unifiée. "Abonnez-vous" masqué si l'utilisateur est déjà Premium
- * (incohérent de le proposer sinon).
+ * RÔLE : Menu mobile. Lien "Collaboration" renommé en "Collaborons",
+ * cohérent avec la navbar bureau.
  */
 "use client";
 
@@ -35,10 +34,9 @@ export default function NavbarMobileMenu({ estPremium }: { estPremium: boolean }
     { href: "/artistes", label: "Artistes" },
     { href: "/sons", label: "Sons" },
     { href: "/clips", label: "Clips" },
-    { href: "/collaboration", label: "Collaboration" },
+    { href: "/collaboration", label: "Collaborons" },
     ...(estPremium ? [] : [{ href: "/abonnez-vous", label: "Abonnez-vous", accent: true }]),
     { href: "/contact", label: "Contact" },
-    
   ];
 
   return (
