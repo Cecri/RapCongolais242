@@ -49,13 +49,13 @@ export default function CollaborationPage() {
       </div>
 
       <div className="mt-10 flex items-center justify-center gap-5 text-ash">
-        <a href="https://instagram.com/rapcongolais242" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-paper">
+        <a href="https://www.instagram.com/rap_congolais_242" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-paper">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" /></svg>
         </a>
         <a href="https://youtube.com/@rapcongolais242" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="hover:text-paper">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M22.5 6.5s-.2-1.6-.9-2.3c-.9-.9-1.9-.9-2.4-1C15.9 3 12 3 12 3h0s-3.9 0-7.2.2c-.5.1-1.5.1-2.4 1-.7.7-.9 2.3-.9 2.3S1.3 8.4 1.3 10.3v1.4c0 1.9.2 3.8.2 3.8s.2 1.6.9 2.3c.9.9 2.1.9 2.6 1 1.9.2 8 .2 8 .2s3.9 0 7.2-.3c.5-.1 1.5-.1 2.4-1 .7-.7.9-2.3.9-2.3s.2-1.9.2-3.8v-1.4c0-1.9-.2-3.8-.2-3.8z" /><polygon points="10 8 10 15 16 11.5" fill="currentColor" stroke="none" /></svg>
         </a>
-        <a href="https://tiktok.com/@rapcongolais242" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="hover:text-paper">
+        <a href="https://www.tiktok.com/@rap.congolais.242" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="hover:text-paper">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2h-3v14.2c0 1.3-1 2.3-2.3 2.3s-2.3-1-2.3-2.3 1-2.3 2.3-2.3c.3 0 .5 0 .8.1v-3.1c-.3 0-.5-.1-.8-.1-3 0-5.4 2.4-5.4 5.4s2.4 5.4 5.4 5.4 5.4-2.4 5.4-5.4V8.4c1.2.9 2.6 1.4 4.1 1.4V6.7c-2.2 0-4-1.8-4-4V2z" /></svg>
         </a>
       </div>

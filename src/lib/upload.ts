@@ -1,23 +1,14 @@
 /**
  * FICHIER : src/lib/upload.ts
- * RÔLE : Génère des URLs signées temporaires permettant au NAVIGATEUR
- * d'uploader un fichier DIRECTEMENT vers Cloudflare R2, sans jamais
- * transiter par notre serveur Next.js.
- *
- * Pourquoi cette approche (et pas un simple upload via Server Action) :
- * une fois hébergé (ex: Vercel), les fonctions serveur ont une limite
- * stricte de taille de requête (~4,5 Mo) qu'aucune configuration ne peut
- * dépasser. Un fichier WAV ou un audio de plusieurs dizaines de Mo la
- * dépasserait systématiquement. En passant par une URL signée, le fichier
- * va du navigateur vers R2 directement — notre serveur ne fait que
- * délivrer une "autorisation temporaire" (quelques octets), jamais le
- * fichier lui-même.
- *
- * Utilisée par : src/app/api/upload/route.ts (le point d'entrée appelé
- * par les formulaires admin avant l'upload réel).
+ * RÔLE : Upload de fichiers vers Cloudflare R2. Contient maintenant
+ * aussi telechargerEtRecadrerCover — récupère une miniature YouTube,
+ * détecte automatiquement les bandes noires (letterboxing typique des
+ * vidéos "Topic" : image bien plus large que haute), recadre sur le
+ * centre carré si besoin, puis stocke le résultat sur R2. Ainsi, plus
+ * besoin d'uploader une pochette à la main pour corriger ce cas précis.
  */
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import sharp from "sharp";
 
 const s3 = new S3Client({
   region: "auto",
@@ -28,24 +19,53 @@ const s3 = new S3Client({
   },
 });
 
-export async function genererUrlUploadSignee(
-  nomFichierOriginal: string,
-  typeMime: string,
-  dossier: "photos-artistes" | "sons" | "pochettes"
-): Promise<{ urlUpload: string; urlPublique: string }> {
-  const extension = nomFichierOriginal.split(".").pop();
-  const cle = `${dossier}/${crypto.randomUUID()}.${extension}`;
+export async function telechargerEtRecadrerCover(
+  urlSource: string,
+  dossier: "pochettes"
+): Promise<string | null> {
+  try {
+    const reponse = await fetch(urlSource);
+    if (!reponse.ok) return null;
 
-  const commande = new PutObjectCommand({
-    Bucket: process.env.R2_BUCKET_NAME,
-    Key: cle,
-    ContentType: typeMime,
-  });
+    const bufferOriginal = Buffer.from(await reponse.arrayBuffer());
+    const image = sharp(bufferOriginal);
+    const metadata = await image.metadata();
 
-  // L'URL générée n'est valide que 5 minutes — largement suffisant pour
-  // un upload, et empêche qu'elle traîne indéfiniment si interceptée.
-  const urlUpload = await getSignedUrl(s3, commande, { expiresIn: 300 });
-  const urlPublique = `${process.env.R2_PUBLIC_URL}/${cle}`;
+    if (!metadata.width || !metadata.height) return null;
 
-  return { urlUpload, urlPublique };
+    let imageFinale = image;
+
+    // Si l'image est nettement plus large que haute (ratio > 1.15),
+    // c'est le signe de bandes noires horizontales (letterboxing) —
+    // on recadre sur un carré centré, qui correspond à la vraie pochette.
+    const ratio = metadata.width / metadata.height;
+    if (ratio > 1.15) {
+      const taille = metadata.height;
+      const decalageGauche = Math.round((metadata.width - taille) / 2);
+      imageFinale = image.extract({
+        left: decalageGauche,
+        top: 0,
+        width: taille,
+        height: taille,
+      });
+    }
+
+    const bufferFinal = await imageFinale.jpeg({ quality: 85 }).toBuffer();
+
+    const cle = `${dossier}/${crypto.randomUUID()}.jpg`;
+
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: cle,
+        Body: bufferFinal,
+        ContentType: "image/jpeg",
+      })
+    );
+
+    return `${process.env.R2_PUBLIC_URL}/${cle}`;
+  } catch (erreur) {
+    console.log("[cover] Échec du recadrage automatique :", erreur);
+    return null;
+  }
 }

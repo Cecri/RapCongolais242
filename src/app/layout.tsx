@@ -1,18 +1,23 @@
 /**
  * FICHIER : src/app/layout.tsx
- * RÔLE : Layout RACINE. overflow-x-hidden appliqué à la fois sur <html>
- * ET <body> — un seul des deux suffit rarement à bloquer un débordement
- * causé par un élément en position:fixed (comme le lecteur), qui se
- * positionne par rapport au viewport et peut l'ignorer si seul le body
- * est contraint.
+ * RÔLE : Layout RACINE. Ajout explicite de la config "viewport" —
+ * certains téléphones Android (dont OnePlus) ont des réglages d'affichage
+ * qui peuvent fausser la largeur d'écran perçue sans cette déclaration
+ * explicite, causant des mises en page "bureau" affichées à tort sur
+ * un téléphone.
  */
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: "RapCongolais242",
   description: "Le tremplin du rap congolais et de sa diaspora",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

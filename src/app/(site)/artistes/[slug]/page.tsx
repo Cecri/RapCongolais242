@@ -1,10 +1,13 @@
 /**
  * FICHIER : src/app/(site)/artistes/[slug]/page.tsx
- * RÔLE : Profil public d'un artiste. Discographie regroupée par projet
- * (Album/EP/Mixtape), singles à part, triés par numéro de piste dans
- * chaque album. Nouvelle section Clips — repère automatiquement les
- * vidéos YouTube dont le titre contient le nom de l'artiste.
+ * RÔLE : Profil public d'un artiste.
+ * - Bascule 2 colonnes repoussée à lg: (1024px) au lieu de md: (768px)
+ *   — plus de marge de sécurité contre les téléphones Android qui
+ *   perçoivent une largeur d'écran plus grande que la réalité.
+ * - Bio affichée directement sous le nom de l'artiste, en simple texte,
+ *   sans le titre "À propos".
  */
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { estUtilisateurPremium } from "@/lib/premium";
@@ -14,7 +17,6 @@ import SonListItem from "@/components/SonListItem";
 import type { PlayerTrack } from "@/context/PlayerContext";
 import { recupererClipsPlaylist } from "@/lib/youtube";
 import ClipCard from "@/components/ClipCard";
-import Link from "next/link";
 
 const LABELS_TYPE: Record<string, string> = {
   ALBUM: "Album",
@@ -87,7 +89,6 @@ export default async function ArtisteProfil({ params }: { params: Promise<{ slug
     .filter((son) => !!son.audioUrl)
     .map((son) => ({ id: son.id, title: son.title, artistName: son.artistName, audioUrl: son.audioUrl!, coverUrl: son.coverUrl }));
 
-  // Regroupement par projet — un groupe par album distinct, singles à part
   type GroupeAlbum = {
     id: string; title: string; type: string; releaseDate: Date; coverUrl: string | null;
     morceaux: typeof tousLesMorceaux;
@@ -120,7 +121,6 @@ export default async function ArtisteProfil({ params }: { params: Promise<{ slug
     (a, b) => b.releaseDate.getTime() - a.releaseDate.getTime()
   );
 
-  // Trie les morceaux à l'intérieur de chaque album par numéro de piste
   for (const album of albumsTries) {
     album.morceaux.sort((a, b) => {
       const numA = a.trackNumber ?? 999;
@@ -138,31 +138,32 @@ export default async function ArtisteProfil({ params }: { params: Promise<{ slug
     ...singles.map((s) => ({ type: "single" as const, data: s })),
   ].sort((a, b) => b.data.releaseDate.getTime() - a.data.releaseDate.getTime());
 
-  // Collaborateurs distincts (featuring croisés)
   const collaborateurs = tousLesMorceaux
     .flatMap((track) => [track.artist, ...track.featuring])
     .filter((a) => a.id !== artisteId)
     .filter((a, i, arr) => arr.findIndex((x) => x.id === a.id) === i);
 
-  // Clips YouTube dont le titre contient le nom de l'artiste
   const tousLesClips = await recupererClipsPlaylist();
   const clipsDeLArtiste = tousLesClips.filter((clip) =>
     clip.title.toLowerCase().includes(artiste.stageName.toLowerCase())
   );
 
   return (
-    <main className="mx-auto max-w-6xl px-4 pb-24 sm:px-8">
-      <header className="flex flex-col gap-6 pt-10 sm:gap-8 sm:pt-14 md:flex-row md:items-end">
+    <main className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-8">
+      <header className="flex flex-col gap-6 pt-10 sm:gap-8 sm:pt-14 lg:flex-row lg:items-end">
         <div className="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-ink-softer font-display text-3xl sm:h-40 sm:w-40 sm:text-4xl">
           {artiste.photoUrl ? (
             <img src={artiste.photoUrl} alt="" className="h-full w-full object-cover" />
           ) : initiales}
         </div>
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           {note !== null && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-copper-dim px-3 py-1 font-mono text-xs font-semibold text-copper">★ {note.toFixed(1)} / 5 ({artiste.ratings.length} avis)</span>
           )}
           <h1 className="mt-3 font-display text-2xl font-bold sm:mt-3.5 sm:text-4xl">{artiste.stageName}</h1>
+          {artiste.bio && (
+            <p className="mt-2 max-w-xl text-sm text-paper-dim sm:text-base">{artiste.bio}</p>
+          )}
           <p className="mt-1.5 text-sm text-paper-dim sm:text-base">{artiste.country} · {artiste.genre ?? "—"} · {sons.length} titre{sons.length !== 1 ? "s" : ""}</p>
           <div className="mt-3">
             <RatingStars artistId={artiste.id} slug={artiste.slug} estConnecte={estConnecte} />
@@ -170,8 +171,8 @@ export default async function ArtisteProfil({ params }: { params: Promise<{ slug
         </div>
       </header>
 
-      <div className="mt-10 grid gap-10 sm:mt-14 sm:gap-12 md:grid-cols-[1fr_320px]">
-        <div>
+      <div className="mt-10 grid min-w-0 gap-10 sm:mt-14 sm:gap-12 lg:grid-cols-[1fr_320px]">
+        <div className="min-w-0">
           <h2 className="font-display text-lg font-semibold sm:text-xl">Discographie</h2>
 
           {elements.length === 0 && <p className="mt-5 text-sm text-ash">Aucun titre pour l&apos;instant.</p>}
@@ -241,16 +242,9 @@ export default async function ArtisteProfil({ params }: { params: Promise<{ slug
               </div>
             </>
           )}
-
-          {artiste.bio && (
-            <>
-              <h2 className="mt-12 font-display text-lg font-semibold sm:mt-14 sm:text-xl">À propos</h2>
-              <p className="mt-4 max-w-xl text-sm text-paper-dim sm:text-base">{artiste.bio}</p>
-            </>
-          )}
         </div>
 
-        <aside className="h-fit rounded-2xl border border-white/10 bg-ink-soft p-6">
+        <aside className="h-fit min-w-0 rounded-2xl border border-white/10 bg-ink-soft p-6">
           <h3 className="font-semibold">Informations</h3>
           <dl className="mt-4 flex flex-col gap-3 text-sm">
             <div className="flex justify-between border-b border-white/10 pb-3"><dt className="text-ash">Pays</dt><dd>{artiste.country}</dd></div>

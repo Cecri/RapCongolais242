@@ -1,15 +1,14 @@
 /**
  * FICHIER : src/components/Podium.tsx
- * RÔLE : Podium visuel (2e-1er-3e) pour "Meilleur démarrage" et "Les
- * plus écoutés". Chaque marche est maintenant cliquable et lance
- * directement la lecture (comme SonCard), au lieu de rediriger vers
- * /sons. Doit être un Client Component séparé car usePlayer nécessite
- * le navigateur.
+ * RÔLE : Podium visuel. Icônes play/pause en SVG (plus de caractères
+ * texte "▶"/"⏸" qui s'affichaient en emoji coloré sur certains
+ * appareils/navigateurs).
  */
 "use client";
 
 import Link from "next/link";
 import { usePlayer, type PlayerTrack } from "@/context/PlayerContext";
+import { IconPlaySmall, IconPauseSmall, IconLock } from "@/components/PlayPauseIcon";
 
 type SonAffichage = {
   id: string;
@@ -76,8 +75,8 @@ function PodiumMarche({
       <Link href="/abonnez-vous" className={`flex flex-col items-center ${largeurs[rang]}`}>
         <span className="text-lg sm:text-2xl">{medailles[rang]}</span>
         <div className="relative mt-1 aspect-square w-full overflow-hidden rounded-xl bg-ink-softer">
-          {son.coverUrl && <img src={son.coverUrl} alt="" className="h-full w-full scale-135 object-cover" />}
-          <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-sm">🔒</span>
+          {son.coverUrl && <img src={son.coverUrl} alt="" className="h-full w-full object-cover" />}
+          <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-paper"><IconLock /></span>
         </div>
         <p className="mt-1.5 w-full truncate text-center text-[11px] font-semibold sm:text-xs">{son.title}</p>
         <p className="w-full truncate text-center text-[10px] text-ash">{son.artistName}</p>
@@ -93,12 +92,12 @@ function PodiumMarche({
       <span className="text-lg sm:text-2xl">{medailles[rang]}</span>
       <div className="group relative mt-1 aspect-square w-full overflow-hidden rounded-xl bg-ink-softer">
         {son.coverUrl ? (
-          <img src={son.coverUrl} alt="" className="h-full w-full scale-135 object-cover" />
+          <img src={son.coverUrl} alt="" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center font-display text-lg text-white/15">♪</div>
         )}
-        <span className={`absolute inset-0 flex items-center justify-center bg-black/40 text-sm transition-opacity ${estEnCours ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"}`}>
-          {estEnCours ? "⏸" : "▶"}
+        <span className={`absolute inset-0 flex items-center justify-center bg-black/40 text-paper transition-opacity ${estEnCours ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"}`}>
+          {estEnCours ? <IconPauseSmall /> : <IconPlaySmall />}
         </span>
       </div>
       <p className="mt-1.5 w-full truncate text-center text-[11px] font-semibold sm:text-xs">{son.title}</p>
@@ -127,18 +126,18 @@ function PodiumResteItem({ son, queueContext }: { son: SonAffichage; queueContex
     <div className="rounded-2xl border border-white/10 bg-ink-soft transition-colors hover:border-white/20">
       {son.verrouille ? (
         <Link href="/abonnez-vous" className="relative block aspect-square overflow-hidden rounded-t-2xl bg-ink-softer">
-          {son.coverUrl && <img src={son.coverUrl} alt="" className="h-full w-full scale-135 object-cover" />}
-          <span className="absolute inset-0 flex items-center justify-center bg-black/50">🔒</span>
+          {son.coverUrl && <img src={son.coverUrl} alt="" className="h-full w-full object-cover" />}
+          <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-paper"><IconLock /></span>
         </Link>
       ) : (
         <button onClick={handleClic} className="group relative block aspect-square w-full overflow-hidden rounded-t-2xl bg-ink-softer">
           {son.coverUrl ? (
-            <img src={son.coverUrl} alt="" className="h-full w-full scale-135 object-cover" />
+            <img src={son.coverUrl} alt="" className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full items-center justify-center font-display text-3xl text-white/15">♪</div>
           )}
-          <span className={`absolute bottom-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-ember text-sm text-paper transition-opacity ${estEnCours ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"}`}>
-            {estEnCours ? "⏸" : "▶"}
+          <span className={`absolute bottom-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-ember text-paper transition-opacity ${estEnCours ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100"}`}>
+            {estEnCours ? <IconPauseSmall /> : <IconPlaySmall />}
           </span>
         </button>
       )}

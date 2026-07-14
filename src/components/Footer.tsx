@@ -1,6 +1,6 @@
 /**
  * FICHIER : src/components/Footer.tsx
- * RÔLE : Pied de page. Ajout du lien TikTok à côté d'Instagram/YouTube.
+ * RÔLE : Pied de page. Vrais liens Instagram/TikTok mis à jour.
  */
 import Link from "next/link";
 import { auth } from "@/lib/auth";
@@ -24,9 +24,9 @@ export default async function Footer() {
             <p className="mt-1 text-sm text-paper-dim">Nouveaux sons, artiste de la semaine, coulisses.</p>
           </div>
           <div className="flex flex-wrap justify-center gap-3">
-            <a href="https://instagram.com/rapcongolais242" target="_blank" rel="noopener noreferrer" className="rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold hover:bg-ink-soft">Instagram</a>
+            <a href="https://www.instagram.com/rap_congolais_242?igsh=MWo1aWVjaTA1M2JibA==" target="_blank" rel="noopener noreferrer" className="rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold hover:bg-ink-soft">Instagram</a>
             <a href="https://youtube.com/@rapcongolais242" target="_blank" rel="noopener noreferrer" className="rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold hover:bg-ink-soft">YouTube</a>
-            <a href="https://tiktok.com/@rapcongolais242" target="_blank" rel="noopener noreferrer" className="rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold hover:bg-ink-soft">TikTok</a>
+            <a href="https://www.tiktok.com/@rap.congolais.242?_r=1&_t=ZN-981QrpcDnpW" target="_blank" rel="noopener noreferrer" className="rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold hover:bg-ink-soft">TikTok</a>
             <Link href="/abonnez-vous" className="rounded-lg bg-ember px-4 py-2.5 text-sm font-semibold text-paper hover:bg-ember/90">
               {estPremium ? "Mon abonnement" : "Devenir Premium"}
             </Link>

@@ -10,6 +10,7 @@ import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { telechargerEtRecadrerCover } from "@/lib/upload";
 
 export type EtatFormulaire = { erreur?: string } | undefined;
 
@@ -133,10 +134,18 @@ async function recupererPochetteAutomatique(url: string): Promise<string | null>
       oembedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`;
     }
     if (!oembedUrl) return null;
+
     const reponse = await fetch(oembedUrl);
     if (!reponse.ok) return null;
+
     const data = await reponse.json();
-    return data.thumbnail_url || null;
+    const miniatureBrute = data.thumbnail_url;
+    if (!miniatureBrute) return null;
+
+    // Télécharge, recadre automatiquement si bandes noires détectées,
+    // puis stocke le résultat sur R2 (au lieu de garder le lien YouTube brut)
+    const miniatureRecadree = await telechargerEtRecadrerCover(miniatureBrute, "pochettes");
+    return miniatureRecadree || miniatureBrute;
   } catch {
     return null;
   }
